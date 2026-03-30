@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:convert';
 import '../../../core/constants/app_config.dart';
 import '../providers/connection_provider.dart';
@@ -138,17 +139,20 @@ class _PairingPageState extends ConsumerState<PairingPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 40),
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.chat_bubble_outline,
-                  size: 72,
-                  color: theme.colorScheme.primary,
+              const SizedBox(height: 20),
+              Center(
+                child: Container(
+                  width: 120,
+                  height: 120,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: SvgPicture.asset(
+                    'assets/images/openclaw_logo.svg',
+                    color: theme.colorScheme.primary,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),

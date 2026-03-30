@@ -1,0 +1,16 @@
+<svg width="200" height="200" viewBox="00 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- OpenClaw Lobster Logo - simplified -->
+  <g fill="#2196F3">
+    <!-- Body -->
+    <ellipse cx="100" cy="120" rx="60" ry="40" />
+    <!-- Claw 1 -->
+    <path d="M 40 110 C 20 100, 10 80, 15 60 C 20 40, 40 35, 50 50 C 55 65, 50 85, 40 100 Z" />
+    <!-- Claw 2 -->
+    <path d="M 160 110 C 180 100, 190 80, 185 60 C 180 40, 160 35, 150 50 C 145 65, 150 85, 160 100 Z" />
+    <!-- Tail -->
+    <path d="M 100 60 C 100 30, 130 20, 150 40 C 160 50, 155 65, 145 70 C 135 75, 120 65, 100 60 Z" />
+    <!-- Eye -->
+    <circle cx="100" cy="110" r="8" fill="white" />
+    <circle cx="100" cy="110" r="4" fill="black" />
+  </g>
+</svg>
