@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import 'package:dio/dio.dart';
+import '../../../core/constants/app_config.dart';
 import '../../../domain/entities/chat_message.dart';
 import '../../../domain/entities/message_role.dart';
 import '../../../domain/entities/message_status.dart';
+import '../../../domain/entities/file_item.dart';
+import '../../../data/datasource/remote/openclaw_client.dart';
 import '../providers/session_provider.dart';
 import '../providers/chat_provider.dart';
 import '../providers/connection_provider.dart';
@@ -20,6 +24,7 @@ class ChatPage extends ConsumerStatefulWidget {
 class _ChatPageState extends ConsumerState<ChatPage> {
   final ScrollController _scrollController = ScrollController();
   bool _showScrollToBottom = false;
+  List<FileItem> _selectedAttachments = [];
 
   @override
   void initState() {
@@ -53,9 +58,19 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     });
   }
 
-  Future<void> _sendMessage(String text) async {
-    if (text.trim().isEmpty) return;
+  void _removeAttachment(FileItem file) {
+    setState(() {
+      _selectedAttachments.remove(file);
+    });
+  }
 
+  void _addAttachments(List<FileItem> files) {
+    setState(() {
+      _selectedAttachments.addAll(files);
+    });
+  }
+
+  Future<void> _sendMessage(String text) async {
     final currentSessionId = ref.read(currentSessionIdProvider);
     if (currentSessionId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -72,15 +87,42 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       return;
     }
 
+    // Upload attachments first
+    final uploadedAttachments = <FileItem>[];
+    final client = ref.read(connectionProvider.notifier).client;
+    final config = connection.config!;
+
+    for (final file in _selectedAttachments) {
+      if (file.localPath != null) {
+        final url = await client.uploadFile(file.localPath!, file.name);
+        if (url != null) {
+          uploadedAttachments.add(file.copyWith(remoteUrl: url));
+        }
+      } else {
+        uploadedAttachments.add(file);
+      }
+    }
+
+    final content = text.trim();
+    if (content.isEmpty && uploadedAttachments.isEmpty) return;
+
     // Send user message
     final message = await ref
         .read(chatMessagesProvider.notifier)
-        .sendMessage(content: text.trim(), role: MessageRole.user);
+        .sendMessage(
+          content: content,
+          role: MessageRole.user,
+        );
+
+    message.attachments = uploadedAttachments;
+    await ref.read(chatMessagesProvider.notifier).saveMessage(message);
 
     _scrollToBottom();
+    setState(() {
+      _selectedAttachments.clear();
+    });
 
     // Get AI response
-    final client = ref.read(connectionProvider.notifier).client;
     final assistantMessage = ChatMessage(
       id: const Uuid().v4(),
       sessionId: currentSessionId,
@@ -88,6 +130,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       content: '',
       createdAt: DateTime.now(),
       status: MessageStatus.sending,
+      attachments: null,
     );
 
     await ref.read(chatMessagesProvider.notifier).saveMessage(assistantMessage);
@@ -186,7 +229,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 ),
               ),
             ),
-          InputBar(onSend: _sendMessage),
+          InputBar(
+            onSend: _sendMessage,
+            onAttachmentsAdded: _addAttachments,
+            selectedAttachments: _selectedAttachments,
+            onRemoveAttachment: _removeAttachment,
+          ),
         ],
       ),
     );

@@ -1,16 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:auto_size_text_field/auto_size_text_field.dart';
+import '../../../domain/entities/file_item.dart';
+import 'attachment_picker.dart';
+import 'selected_attachments.dart';
 
-class InputBar extends StatefulWidget {
+class InputBar extends ConsumerStatefulWidget {
   final ValueChanged<String> onSend;
+  final ValueChanged<List<FileItem>>? onAttachmentsAdded;
+  final List<FileItem> selectedAttachments;
+  final ValueChanged<FileItem> onRemoveAttachment;
 
-  const InputBar({super.key, required this.onSend});
+  const InputBar({
+    super.key,
+    required this.onSend,
+    this.onAttachmentsAdded,
+    this.selectedAttachments = const [],
+    required this.onRemoveAttachment,
+  });
 
   @override
-  State<InputBar> createState() => _InputBarState();
+  ConsumerState<InputBar> createState() => _InputBarState();
 }
 
-class _InputBarState extends State<InputBar> {
+class _InputBarState extends ConsumerState<InputBar> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
 
@@ -23,7 +36,7 @@ class _InputBarState extends State<InputBar> {
 
   void _handleSend() {
     final text = _controller.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty && widget.selectedAttachments.isEmpty) return;
     widget.onSend(text);
     _controller.clear();
   }
@@ -42,44 +55,48 @@ class _InputBarState extends State<InputBar> {
           ),
         ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+      child: Column(
         children: [
-          IconButton(
-            icon: const Icon(Icons.attach_file),
-            onPressed: () {
-              // TODO: Open attachment picker
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Attachment picking coming soon')),
-              );
-            },
+          SelectedAttachments(
+            files: widget.selectedAttachments,
+            onRemove: widget.onRemoveAttachment,
           ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: AutoSizeTextField(
-              controller: _controller,
-              focusNode: _focusNode,
-              decoration: InputDecoration(
-                hintText: 'Type a message...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (widget.onAttachmentsAdded != null)
+                AttachmentPicker(
+                  onAttachmentSelected: widget.onAttachmentsAdded!,
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
+              const SizedBox(width: 4),
+              Expanded(
+                child: AutoSizeTextField(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  decoration: InputDecoration(
+                    hintText: 'Type a message...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                  ),
+                  maxLines: 6,
+                  minLines: 1,
+                  onSubmitted: (_) => _handleSend(),
                 ),
               ),
-              maxLines: 6,
-              minLines: 1,
-              onSubmitted: (_) => _handleSend(),
-            ),
-          ),
-          const SizedBox(width: 4),
-          IconButton(
-            icon: const Icon(Icons.send, color: Colors.blue),
-            onPressed: _controller.text.trim().isEmpty
-                ? null
-                : () => _handleSend(),
+              const SizedBox(width: 4),
+              IconButton(
+                icon: const Icon(Icons.send, color: Colors.blue),
+                onPressed: _controller.text.trim().isEmpty &&
+                        widget.selectedAttachments.isEmpty
+                    ? null
+                    : () => _handleSend(),
+              ),
+            ],
           ),
         ],
       ),
