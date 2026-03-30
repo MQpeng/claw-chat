@@ -115,8 +115,10 @@ class _PairingPageState extends ConsumerState<PairingPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Container(
         decoration: BoxDecoration(
@@ -133,6 +135,9 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                     Colors.transparent,
                   ],
           ),
+        ),
+        constraints: BoxConstraints(
+          minHeight: screenHeight,
         ),
         child: SafeArea(
           child: SingleChildScrollView(
