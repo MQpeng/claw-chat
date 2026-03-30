@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../l10n/app_localizations.dart';
 import '../providers/session_provider.dart';
 import '../providers/connection_provider.dart';
 import '../../domain/entities/chat_session.dart';
@@ -26,16 +27,17 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _createNewSession() async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
     final name = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('New Session'),
+        title:  Text(l10n.newSession),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Session Name',
-            hintText: 'Enter session name',
+          decoration:  InputDecoration(
+            labelText: l10n.sessionName,
+            hintText: l10n.enterSessionName,
           ),
           autofocus: true,
           onSubmitted: (value) {
@@ -45,11 +47,11 @@ class _HomePageState extends ConsumerState<HomePage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child:  Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Create'),
+            child:  Text(l10n.create),
           ),
         ],
       ),
@@ -62,19 +64,20 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _deleteSession(ChatSession session) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Session'),
-        content: Text('Are you sure you want to delete "${session.name}"?'),
+        title:  Text(l10n.deleteSession),
+        content: Text('${l10n.areYouSureYouWantToDelete} "${session.name}"?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child:  Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            child:  Text(l10n.delete, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -90,26 +93,27 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _renameSession(ChatSession session) async {
+    final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: session.name);
     final newName = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Rename Session'),
+        title:  Text(l10n.renameSession),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Session Name',
+          decoration:  InputDecoration(
+            labelText: l10n.sessionName,
           ),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child:  Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(controller.text.trim()),
-            child: const Text('Save'),
+            child:  Text(l10n.save),
           ),
         ],
       ),
@@ -122,6 +126,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final sessions = ref.watch(sessionListProvider);
     final currentSessionId = ref.watch(currentSessionIdProvider);
     final connection = ref.watch(connectionProvider);
@@ -168,7 +173,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 }
               }
             },
-            tooltip: 'Search Sessions',
+            tooltip: l10n.searchSessions,
           ),
           IconButton(
             icon: const Icon(Icons.settings),
@@ -178,12 +183,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                 MaterialPageRoute(builder: (context) => const SettingsPage()),
               );
             },
-            tooltip: 'Settings',
+            tooltip: l10n.settings,
           ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: _createNewSession,
-            tooltip: 'New Session',
+            tooltip: l10n.createNew,
           ),
         ],
       ),
@@ -207,16 +212,17 @@ class _HomePageState extends ConsumerState<HomePage> {
     List<ChatSession> sessions,
     String? currentSessionId,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     if (sessions.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('No sessions yet'),
+             Text(l10n.selectASessionToStartChatting),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _createNewSession,
-              child: const Text('Create First Session'),
+              child:  Text(l10n.newSession),
             ),
           ],
         ),
