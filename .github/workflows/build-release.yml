@@ -14,7 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        abi: [armeabi-v7a, arm64-v8a, x86_64]
+        include:
+          - abi: armeabi-v7a
+            target: android-arm
+          - abi: arm64-v8a
+            target: android-arm64
+          - abi: x86_64
+            target: android-x64
       fail-fast: false
 
     steps:
@@ -39,7 +45,7 @@ jobs:
       run: flutter pub get
 
     - name: Build APK for ${{ matrix.abi }}
-      run: flutter build apk --release --split-per-abi --target-platform android-${{ matrix.abi }}
+      run: flutter build apk --release --target-platform ${{ matrix.target }}
 
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
