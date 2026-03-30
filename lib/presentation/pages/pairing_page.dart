@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:convert';
-import '../../../core/constants/app_config.dart';
+import '../../../core/constants/app_config';
 import '../providers/connection_provider.dart';
 
 class PairingPage extends ConsumerStatefulWidget {
@@ -115,9 +115,7 @@ class _PairingPageState extends ConsumerState<PairingPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('claw-chat'),
-      ),
+      appBar: AppBar(),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -234,7 +232,7 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                             _errorMessage!,
                             style: const TextStyle(
                               color: Colors.red,
-                              fontSize: 14,
+                                fontSize: 14,
                             ),
                           ),
                         ),

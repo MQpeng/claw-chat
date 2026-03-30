@@ -144,7 +144,6 @@ class _HomePageState extends ConsumerState<HomePage> {
               child: _buildSessionList(context, sessions, currentSessionId),
             ),
       appBar: AppBar(
-        title: const Text('claw-chat'),
         centerTitle: true,
         leading: isTablet
             ? null
