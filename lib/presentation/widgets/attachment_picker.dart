@@ -107,6 +107,8 @@ class AttachmentPicker {
                   type = FileItemType.audio;
                 } else if (extension == 'pdf') {
                   type = FileItemType.pdf;
+                } else if (['xlsx', 'xls'].contains(extension)) {
+                  type = FileItemType.excel;
                 }
 
                 final file = FileItem(
@@ -142,6 +144,9 @@ class AttachmentPicker {
         return 'video/mp4';
       case 'mp3':
         return 'audio/mpeg';
+      case 'xlsx':
+      case 'xls':
+        return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
       default:
         return 'application/octet-stream';
     }

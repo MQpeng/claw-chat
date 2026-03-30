@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:video_player/video_player.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:excel/excel.dart';
 import '../../../domain/entities/file_item.dart';
 import '../../../domain/entities/file_item_type.dart';
 
@@ -195,6 +196,26 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
           );
         }
         return const Center(child: Text('Cannot preview PDF'));
+      case FileItemType.excel:
+        if (widget.file.localPath != null) {
+          return FutureBuilder<Excel>(
+            future: _readExcelFile(widget.file.localPath!),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error reading Excel file: ${snapshot.error}'));
+              } else if (!snapshot.hasData) {
+                return const Center(child: Text('Cannot read Excel file'));
+              }
+
+              final excel = snapshot.data!;
+              final sheets = excel.tables.keys.toList();
+              return _buildExcelPreview(excel, sheets);
+            },
+          );
+        }
+        return const Center(child: Text('Cannot preview Excel file'));
       case FileItemType.other:
         return Center(
           child: Column(
@@ -219,5 +240,74 @@ class _FilePreviewPageState extends State<FilePreviewPage> {
 
   String _formatDuration(Duration d) {
     return '${d.inMinutes}:${(d.inSeconds % 60).toString().padLeft(2, '0')}';
+  }
+
+  Future<Excel> _readExcelFile(String path) async {
+    final bytes = File(path).readAsBytesSync();
+    return Excel.decodeBytes(bytes);
+  }
+
+  Widget _buildExcelPreview(Excel excel, List<Sheet> sheets) {
+    return DefaultTabController(
+      length: sheets.length,
+      child: Column(
+        children: [
+          TabBar(
+            isScrollable: true,
+            tabs: sheets.map((sheet) => Tab(text: sheet.sheetName)).toList(),
+          ),
+          Expanded(
+            child: TabBarView(
+              children: sheets.map((sheet) {
+                final maxRows = sheet.maxRows;
+                final maxCols = sheet.maxColumns;
+                if (maxRows == 0 || maxCols == 0) {
+                  return const Center(child: Text('Empty sheet'));
+                }
+
+                // Limit rows to 500 to avoid performance issues
+                final displayRows = sheet.rows.take(maxRows > 500 ? 500 : maxRows).toList();
+
+                return SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      columns: displayRows.isNotEmpty && displayRows[0] != null
+                          ? List.generate(displayRows[0]!.length, (colIndex) {
+                              final cell = displayRows[0]![colIndex];
+                              return DataColumn(
+                                label: Text(
+                                  cell?.value?.toString() ?? 'Col $colIndex',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                              );
+                            })
+                          : const [DataColumn(label: Text('No data'))],
+                      rows: displayRows.length > 1
+                          ? displayRows.sublist(1).map((row) {
+                              if (row == null) return DataRow(cells: const []);
+                              return DataRow(
+                                cells: row.map((cell) {
+                                  return DataCell(
+                                    Text(
+                                      cell?.value?.toString() ?? '',
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  );
+                                }).toList(),
+                              );
+                            }).toList()
+                          : [],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

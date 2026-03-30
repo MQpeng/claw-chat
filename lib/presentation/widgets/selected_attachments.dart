@@ -85,6 +85,8 @@ class SelectedAttachments extends StatelessWidget {
         return Icons.audio_file;
       case FileItemType.pdf:
         return Icons.picture_as_pdf;
+      case FileItemType.excel:
+        return Icons.table_chart;
       case FileItemType.other:
         return Icons.insert_drive_file;
     }
