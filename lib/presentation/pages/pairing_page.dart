@@ -36,9 +36,18 @@ class _PairingPageState extends ConsumerState<PairingPage> {
   }
 
   void _startScan() {
-    setState(() {
-      _isScanning = true;
-    });
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(
+            title: const Text('Scan QR Code'),
+          ),
+          body: MobileScanner(
+            onDetect: _onQrScanned,
+          ),
+        ),
+      ),
+    );
   }
 
   void _onQrScanned(BarcodeCapture capture) {
@@ -57,9 +66,9 @@ class _PairingPageState extends ConsumerState<PairingPage> {
       setState(() {
         _gatewayUrlController.text = url;
         _tokenController.text = token;
-        _isScanning = false;
       });
 
+      Navigator.of(context).pop();
       _testAndConnect();
     } catch (e) {
       setState(() {
@@ -103,25 +112,6 @@ class _PairingPageState extends ConsumerState<PairingPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    if (_isScanning) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Scan QR Code'),
-          leading: IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () {
-              setState(() {
-                _isScanning = false;
-              });
-            },
-          ),
-        ),
-        body: MobileScanner(
-          onDetect: _onQrScanned,
-        ),
-      );
-    }
 
     return Scaffold(
       appBar: AppBar(
@@ -252,15 +242,15 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           textStyle: const TextStyle(fontSize: 16),
                         ),
-                        child: _isTesting
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text('Save & Connect'),
+                          child: _isTesting
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text('Save & Connect'),
                       ),
                     ],
                   ),
