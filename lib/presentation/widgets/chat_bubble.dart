@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:flutter_highlight/flutter_highlight.dart';
-import 'package:flutter_highlight/theme_map.dart';
-import 'package:highlight/highlight.dart';
 import '../../../domain/entities/chat_message.dart';
-import '../../../domain/entities/message_role.dart';
-import '../../../domain/entities/message_status.dart';
 
 class ChatBubble extends StatelessWidget {
   final ChatMessage message;
@@ -58,7 +53,14 @@ class ChatBubble extends StatelessWidget {
                               : const Radius.circular(16),
                         ),
                       ),
-                      child: _buildContent(context, theme, isUser, message.content),
+                      child: MarkdownBody(
+                        data: message.content,
+                        selectable: true,
+                        onTapLink: (text, href, title) {
+                          // TODO: Open link
+                        },
+                        styleSheet: _markdownStyle(theme, isUser),
+                      ),
                     ),
                   ],
                 ),
@@ -92,29 +94,19 @@ class ChatBubble extends StatelessWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context, ThemeData theme, bool isUser, String content) {
+  MarkdownStyleSheet _markdownStyle(ThemeData theme, bool isUser) {
     final textColor = isUser
         ? Colors.white
-        : (theme.brightness == Brightness.dark
-            ? Colors.white
-            : Colors.black);
-
-    return MarkdownBody(
-      data: content,
-      selectable: true,
-      onTapLink: (text, href, title) {
-        // TODO: Open link
-      },
-      styleSheet: MarkdownStyleSheet(
-        p: TextStyle(color: textColor, fontSize: 16),
-        a: TextStyle(color: isUser ? Colors.white : Colors.blue),
-        code: TextStyle(
-          backgroundColor: theme.brightness == Brightness.dark
-              ? Colors.grey[900]
-              : Colors.grey[100],
-          color: textColor,
-          fontSize: 14,
-        ),
+        : (theme.brightness == Brightness.dark ? Colors.white : Colors.black);
+    return MarkdownStyleSheet(
+      p: TextStyle(color: textColor, fontSize: 16),
+      a: TextStyle(color: isUser ? Colors.white : Colors.blue),
+      code: TextStyle(
+        backgroundColor: theme.brightness == Brightness.dark
+            ? Colors.grey[900]
+            : Colors.grey[100],
+        color: textColor,
+        fontSize: 14,
       ),
     );
   }

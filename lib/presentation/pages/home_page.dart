@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/session_provider.dart';
 import '../providers/connection_provider.dart';
-import '../../../domain/entities/chat_session.dart';
+import '../../domain/entities/chat_session.dart';
+import 'session_search_delegate.dart';
+import 'settings_page.dart';
 import 'chat_page.dart';
 import '../widgets/session_list_item.dart';
 
@@ -153,6 +155,32 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ),
               ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () async {
+              final selected = await showSearch<ChatSession?>(
+                context: context,
+                delegate: SessionSearchDelegate(ref),
+              );
+              if (selected != null && context.mounted) {
+                ref.read(currentSessionIdProvider.notifier).state = selected.id;
+                if (!ref.read(connectionProvider).isConnected) {
+                  ref.read(connectionProvider.notifier).connect();
+                }
+              }
+            },
+            tooltip: 'Search Sessions',
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
+              );
+            },
+            tooltip: 'Settings',
+          ),
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: _createNewSession,
