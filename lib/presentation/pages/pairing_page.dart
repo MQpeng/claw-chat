@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:convert';
-import '../../../core/constants/app_config';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../core/constants/app_config.dart';
 import '../providers/connection_provider.dart';
 
 class PairingPage extends ConsumerStatefulWidget {
@@ -27,7 +28,7 @@ class _PairingPageState extends ConsumerState<PairingPage> {
   }
 
   Future<void> _loadSavedConfig() async {
-    final connection = ref.read(connectionProvider);
+    final connection = ref.watch(connectionProvider);
     if (connection.config != null) {
       setState(() {
         _gatewayUrlController.text = connection.config!.gatewayUrl;
@@ -41,7 +42,7 @@ class _PairingPageState extends ConsumerState<PairingPage> {
       MaterialPageRoute(
         builder: (context) => Scaffold(
           appBar: AppBar(
-            title: const Text('Scan QR Code'),
+            title: Text(AppLocalizations.of(context)!.scanQRCode),
           ),
           body: MobileScanner(
             onDetect: _onQrScanned,
@@ -73,7 +74,7 @@ class _PairingPageState extends ConsumerState<PairingPage> {
       _testAndConnect();
     } catch (e) {
       setState(() {
-        _errorMessage = 'Invalid QR code format';
+        _errorMessage = AppLocalizations.of(context)!.invalidQRCodeFormat;
       });
     }
   }
@@ -89,7 +90,7 @@ class _PairingPageState extends ConsumerState<PairingPage> {
 
     if (gatewayUrl.isEmpty || token.isEmpty) {
       setState(() {
-        _errorMessage = 'Please fill in both Gateway URL and Token';
+        _errorMessage = AppLocalizations.of(context)!.pleaseFillInBothGatewayURLAndToken;
         _isTesting = false;
       });
       return;
@@ -106,13 +107,14 @@ class _PairingPageState extends ConsumerState<PairingPage> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Configuration saved')),
+       SnackBar(content: Text(AppLocalizations.of(context)!.configurationSaved)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(),
@@ -149,22 +151,22 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                   ),
                   child: SvgPicture.asset(
                     'assets/images/openclaw_logo.svg',
-                    color: theme.colorScheme.primary,
+                    colorFilter: ColorFilter.mode(theme.colorScheme.primary, BlendMode.srcIn),
                   ),
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'Connect to OpenClaw',
+               Text(
+                l10n.connectToOpenClaw,
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 12),
-              Text(
-                'Scan QR code from OpenClaw Web UI\nor enter configuration manually',
+               Text(
+                l10n.scanQRCodeFromOpenClawWebUI,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
@@ -182,7 +184,7 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                       ElevatedButton.icon(
                         onPressed: _startScan,
                         icon: const Icon(Icons.qr_code_scanner),
-                        label: const Text('Scan QR Code'),
+                         label: Text(l10n.scanQRCode),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           textStyle: const TextStyle(fontSize: 16),
@@ -191,34 +193,34 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                       const SizedBox(height: 20),
                       const Divider(),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Manual Configuration',
-                        style: TextStyle(
+                       Text(
+                        l10n.manualConfiguration,
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(height: 16),
-                      TextField(
+                       TextField(
                         controller: _gatewayUrlController,
-                        decoration: const InputDecoration(
-                          labelText: 'Gateway URL',
+                        decoration:  InputDecoration(
+                          labelText: l10n.gatewayURL,
                           hintText: 'https://your-gateway.example.com',
-                          prefixIcon: Icon(Icons.link),
+                          prefixIcon: const Icon(Icons.link),
                         ),
-                        keyboardType: TextInputType.url,
-                        textCapitalization: TextCapitalization.none,
+                          keyboardType: TextInputType.url,
+                          textCapitalization: TextCapitalization.none,
                       ),
                       const SizedBox(height: 16),
-                      TextField(
+                       TextField(
                         controller: _tokenController,
-                        decoration: const InputDecoration(
-                          labelText: 'Token',
-                          hintText: 'Your pairing token',
-                          prefixIcon: Icon(Icons.key),
+                        decoration:  InputDecoration(
+                          labelText: l10n.token,
+                          hintText: l10n.yourPairingToken,
+                          prefixIcon: const Icon(Icons.key),
                         ),
-                        obscureText: true,
-                        textCapitalization: TextCapitalization.none,
+                          obscureText: true,
+                          textCapitalization: TextCapitalization.none,
                       ),
                       if (_errorMessage != null) ...[
                         const SizedBox(height: 16),
@@ -252,7 +254,7 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text('Save & Connect'),
+                              :  Text(l10n.saveAndConnect),
                       ),
                     ],
                   ),

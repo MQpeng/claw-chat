@@ -7,6 +7,7 @@ import 'presentation/providers/theme_provider.dart';
 import 'presentation/providers/connection_provider.dart';
 import 'presentation/pages/home_page.dart';
 import 'presentation/pages/pairing_page.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +30,8 @@ class ClawChatApp extends ConsumerWidget {
     });
 
     return MaterialApp(
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       title: 'claw-chat',
       debugShowCheckedModeBanner: false,
       theme: lightTheme(),
