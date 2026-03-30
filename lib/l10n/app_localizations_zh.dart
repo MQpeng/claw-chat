@@ -1,18 +1,14 @@
-// ignore: unused_import
-import 'package:intl/intl.dart' as intl;
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
 import 'app_localizations.dart';
 
-// ignore_for_file: type=lint
-
-/// The translations for Chinese (`zh`).
 class AppLocalizationsZh extends AppLocalizations {
-  AppLocalizationsZh([String locale = 'zh']) : super(locale);
-
   @override
   String get connectToOpenClaw => '连接 OpenClaw';
 
   @override
-  String get scanQRCodeFromOpenClawWebUI => '从 OpenClaw 网页扫码\n或手动输入配置';
+  String get scanQRCodeFromOpenClawWebUI =>
+      '从 OpenClaw 网页扫码\n或手动输入配置';
 
   @override
   String get scanQRCode => '扫描二维码';
@@ -111,7 +107,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get openClaw => 'OpenClaw';
 
   @override
-  String get lightweightFlutterMobileClient => 'OpenClaw 轻量级 Flutter 移动客户端\n直接连接到你的 OpenClaw 网关，通过 LAN/Tailscale 直连';
+  String get lightweightFlutterMobileClient =>
+      'OpenClaw 轻量级 Flutter 移动客户端\n直接连接到你的 OpenClaw 网关，通过 LAN/Tailscale 直连';
 
   @override
   String get selectASessionToStartChatting => '选择一个会话开始聊天';
