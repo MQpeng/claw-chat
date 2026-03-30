@@ -117,13 +117,7 @@ class _PairingPageState extends ConsumerState<PairingPage> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.zero,
-        child: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-        ),
-      ),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -146,12 +140,12 @@ class _PairingPageState extends ConsumerState<PairingPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 10),
+                const SizedBox(height: 20),
                 Center(
                   child: Container(
-                    width: 120,
-                    height: 120,
-                    padding: const EdgeInsets.all(16),
+                    width: 100,
+                    height: 100,
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.primary.withOpacity(0.1),
                       shape: BoxShape.circle,
@@ -162,29 +156,29 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                  Text(
                   l10n.connectToOpenClaw,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontSize: 28,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                  Text(
                   l10n.scanQRCodeFromOpenClawWebUI,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
-                    fontSize: 16,
+                    fontSize: 14,
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
                 Card(
                   elevation: 2,
                   child: Padding(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -193,11 +187,11 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                           icon: const Icon(Icons.qr_code_scanner),
                            label: Text(l10n.scanQRCode),
                           style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                             textStyle: const TextStyle(fontSize: 16),
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 16),
                         const Divider(),
                         const SizedBox(height: 16),
                          Text(
@@ -246,17 +240,17 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                             ),
                           ),
                         ],
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 20),
                         FilledButton(
                           onPressed: _isTesting ? null : _testAndConnect,
                           style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                             textStyle: const TextStyle(fontSize: 16),
                           ),
                           child: _isTesting
                               ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
+                                  width: 20,
+                                  height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
                                   ),
