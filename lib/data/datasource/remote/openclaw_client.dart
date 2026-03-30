@@ -33,8 +33,8 @@ class OpenClawClient {
       );
       _channel = WebSocketChannel.connect(wsUriWithHeaders);
 
-      // Wait for connection
-      await _channel!.stream.first;
+      // WebSocketChannel.connect 会立即完成连接，只要DNS解析和TCP握手成功即可
+      // OpenClaw 服务器不会主动发送欢迎消息，所以不需要等待第一条消息
       _connected = true;
       return true;
     } catch (e) {
