@@ -140,118 +140,119 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                   ],
           ),
         ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 20),
-              Center(
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.1),
-                    shape: BoxShape.circle,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 10),
+                Center(
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: SvgPicture.asset(
+                      'assets/images/openclaw_logo.svg',
+                      colorFilter: ColorFilter.mode(theme.colorScheme.primary, BlendMode.srcIn),
+                    ),
                   ),
-                  child: SvgPicture.asset(
-                    'assets/images/openclaw_logo.svg',
-                    colorFilter: ColorFilter.mode(theme.colorScheme.primary, BlendMode.srcIn),
+                ),
+                const SizedBox(height: 24),
+                 Text(
+                  l10n.connectToOpenClaw,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
-               Text(
-                l10n.connectToOpenClaw,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
+                const SizedBox(height: 12),
+                 Text(
+                  l10n.scanQRCodeFromOpenClawWebUI,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                    fontSize: 16,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-               Text(
-                l10n.scanQRCodeFromOpenClawWebUI,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 48),
-              Card(
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      ElevatedButton.icon(
-                        onPressed: _startScan,
-                        icon: const Icon(Icons.qr_code_scanner),
-                         label: Text(l10n.scanQRCode),
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          textStyle: const TextStyle(fontSize: 16),
+                const SizedBox(height: 32),
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: _startScan,
+                          icon: const Icon(Icons.qr_code_scanner),
+                           label: Text(l10n.scanQRCode),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            textStyle: const TextStyle(fontSize: 16),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      const Divider(),
-                      const SizedBox(height: 16),
-                       Text(
-                        l10n.manualConfiguration,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                        const SizedBox(height: 20),
+                        const Divider(),
+                        const SizedBox(height: 16),
+                         Text(
+                          l10n.manualConfiguration,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                       TextField(
-                        controller: _gatewayUrlController,
-                        decoration:  InputDecoration(
-                          labelText: l10n.gatewayURL,
-                          hintText: 'https://your-gateway.example.com',
-                          prefixIcon: const Icon(Icons.link),
-                        ),
+                        const SizedBox(height: 16),
+                         TextField(
+                          controller: _gatewayUrlController,
+                          decoration:  InputDecoration(
+                            labelText: l10n.gatewayURL,
+                            hintText: 'https://your-gateway.example.com',
+                            prefixIcon: const Icon(Icons.link),
+                          ),
                           keyboardType: TextInputType.url,
                           textCapitalization: TextCapitalization.none,
-                      ),
-                      const SizedBox(height: 16),
-                       TextField(
-                        controller: _tokenController,
-                        decoration:  InputDecoration(
-                          labelText: l10n.token,
-                          hintText: l10n.yourPairingToken,
-                          prefixIcon: const Icon(Icons.key),
                         ),
+                        const SizedBox(height: 16),
+                         TextField(
+                          controller: _tokenController,
+                          decoration:  InputDecoration(
+                            labelText: l10n.token,
+                            hintText: l10n.yourPairingToken,
+                            prefixIcon: const Icon(Icons.key),
+                          ),
                           obscureText: true,
                           textCapitalization: TextCapitalization.none,
-                      ),
-                      if (_errorMessage != null) ...[
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            _errorMessage!,
-                            style: const TextStyle(
-                              color: Colors.red,
+                        ),
+                        if (_errorMessage != null) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _errorMessage!,
+                              style: const TextStyle(
+                                color: Colors.red,
                                 fontSize: 14,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                      const SizedBox(height: 24),
-                      FilledButton(
-                        onPressed: _isTesting ? null : _testAndConnect,
-                        style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          textStyle: const TextStyle(fontSize: 16),
-                        ),
+                        ],
+                        const SizedBox(height: 24),
+                        FilledButton(
+                          onPressed: _isTesting ? null : _testAndConnect,
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            textStyle: const TextStyle(fontSize: 16),
+                          ),
                           child: _isTesting
                               ? const SizedBox(
                                   width: 24,
@@ -261,12 +262,14 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                                   ),
                                 )
                               :  Text(l10n.saveAndConnect),
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 20),
+              ],
+            ),
           ),
         ),
       ),
