@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import 'package:dio/dio.dart';
-import '../../../core/constants/app_config.dart';
 import '../../../domain/entities/chat_message.dart';
 import '../../../domain/entities/message_role.dart';
 import '../../../domain/entities/message_status.dart';
 import '../../../domain/entities/file_item.dart';
-import '../../../data/datasource/remote/openclaw_client.dart';
 import '../providers/session_provider.dart';
 import '../providers/chat_provider.dart';
 import '../providers/connection_provider.dart';
@@ -24,7 +21,6 @@ class ChatPage extends ConsumerStatefulWidget {
 class _ChatPageState extends ConsumerState<ChatPage> {
   final ScrollController _scrollController = ScrollController();
   bool _showScrollToBottom = false;
-  List<FileItem> _selectedAttachments = [];
 
   @override
   void initState() {
@@ -58,19 +54,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     });
   }
 
-  void _removeAttachment(FileItem file) {
-    setState(() {
-      _selectedAttachments.remove(file);
-    });
-  }
-
-  void _addAttachments(List<FileItem> files) {
-    setState(() {
-      _selectedAttachments.addAll(files);
-    });
-  }
-
-  Future<void> _sendMessage(String text) async {
+  Future<void> _sendMessage(String text, List<FileItem> attachments) async {
     final currentSessionId = ref.read(currentSessionIdProvider);
     if (currentSessionId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -79,7 +63,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       return;
     }
 
-    final connection = ref.read(connectionProvider);
+    final connection = ref.watch(connectionProvider);
     if (!connection.isConnected) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Not connected to OpenClaw')),
@@ -90,9 +74,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     // Upload attachments first
     final uploadedAttachments = <FileItem>[];
     final client = ref.read(connectionProvider.notifier).client;
-    final config = connection.config!;
 
-    for (final file in _selectedAttachments) {
+    for (final file in attachments) {
       if (file.localPath != null) {
         final url = await client.uploadFile(file.localPath!, file.name);
         if (url != null) {
@@ -118,9 +101,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     await ref.read(chatMessagesProvider.notifier).saveMessage(message);
 
     _scrollToBottom();
-    setState(() {
-      _selectedAttachments.clear();
-    });
 
     // Get AI response
     final assistantMessage = ChatMessage(
@@ -180,14 +160,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(currentSession.name),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              // TODO: Open settings
-            },
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -231,9 +203,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             ),
           InputBar(
             onSend: _sendMessage,
-            onAttachmentsAdded: _addAttachments,
-            selectedAttachments: _selectedAttachments,
-            onRemoveAttachment: _removeAttachment,
+            enabled: connection.isConnected,
           ),
         ],
       ),

@@ -24,62 +24,106 @@ class SessionListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Slidable(
-      endActionPane: ActionPane(
-        motion: const BehindMotion(),
-        children: [
-          SlidableAction(
-            onPressed: (_) => onTogglePin(),
-            backgroundColor: Colors.blue,
-            icon: session.isPinned ? Icons.push_pin_outlined : Icons.push_pin,
-            label: session.isPinned ? 'Unpin' : 'Pin',
-          ),
-          SlidableAction(
-            onPressed: (_) => onRename(),
-            backgroundColor: Colors.orange,
-            icon: Icons.edit,
-            label: 'Rename',
-          ),
-          SlidableAction(
-            onPressed: (_) => onDelete(),
-            backgroundColor: Colors.red,
-            icon: Icons.delete,
-            label: 'Delete',
-          ),
-        ],
-      ),
-      child: ListTile(
-        selected: isSelected,
-        selectedTileColor: Theme.of(context).colorScheme.primaryContainer,
-        leading: session.isPinned
-            ? const Icon(Icons.push_pin, size: 16, color: Colors.blue)
-            : null,
-        title: Text(
-          session.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Card(
+        elevation: isSelected ? 2 : 1,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: isSelected
+              ? BorderSide(color: theme.colorScheme.primary, width: 2)
+              : BorderSide.none,
         ),
-        subtitle: Text(
-          _formatDate(session.updatedAt),
-          style: Theme.of(context).textTheme.bodySmall,
+        child: Slidable(
+          endActionPane: ActionPane(
+            motion: const BehindMotion(),
+            extentRatio: 0.75,
+            children: [
+              SlidableAction(
+                onPressed: (_) => onTogglePin(),
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                icon: session.isPinned ? Icons.push_pin_outlined : Icons.push_pin,
+                label: session.isPinned ? 'Unpin' : 'Pin',
+                borderRadius: BorderRadius.circular(12),
+              ),
+              SlidableAction(
+                onPressed: (_) => onRename(),
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+                icon: Icons.edit,
+                label: 'Rename',
+                borderRadius: BorderRadius.circular(12),
+              ),
+              SlidableAction(
+                onPressed: (_) => onDelete(),
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: 'Delete',
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ],
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            selected: isSelected,
+            selectedTileColor: theme.colorScheme.primaryContainer.withOpacity(0.3),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            leading: session.isPinned
+                ? Icon(
+                    Icons.push_pin,
+                    size: 18,
+                    color: theme.colorScheme.primary,
+                  )
+                : null,
+            title: Text(
+              session.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                _formatDate(session.updatedAt),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                ),
+              ),
+            ),
+            trailing: session.unreadCount > 0
+                ? Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 2,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      session.unreadCount.toString(),
+                      style: TextStyle(
+                        color: theme.colorScheme.onPrimary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  )
+                : null,
+            onTap: onTap,
+          ),
         ),
-        trailing: session.unreadCount > 0
-            ? Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  session.unreadCount.toString(),
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    fontSize: 12,
-                  ),
-                ),
-              )
-            : null,
-        onTap: onTap,
       ),
     );
   }

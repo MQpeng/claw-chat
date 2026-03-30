@@ -1,22 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:auto_size_text_field/auto_size_text_field.dart';
 import '../../../domain/entities/file_item.dart';
 import 'attachment_picker.dart';
 import 'selected_attachments.dart';
 
 class InputBar extends ConsumerStatefulWidget {
-  final ValueChanged<String> onSend;
-  final ValueChanged<List<FileItem>>? onAttachmentsAdded;
-  final List<FileItem> selectedAttachments;
-  final ValueChanged<FileItem> onRemoveAttachment;
+  final Function(String text, List<FileItem> attachments) onSend;
+  final bool enabled;
 
   const InputBar({
     super.key,
     required this.onSend,
-    this.onAttachmentsAdded,
-    this.selectedAttachments = const [],
-    required this.onRemoveAttachment,
+    this.enabled = true,
   });
 
   @override
@@ -25,28 +20,43 @@ class InputBar extends ConsumerStatefulWidget {
 
 class _InputBarState extends ConsumerState<InputBar> {
   final _controller = TextEditingController();
-  final _focusNode = FocusNode();
+  final List<FileItem> _selectedAttachments = [];
 
   @override
   void dispose() {
     _controller.dispose();
-    _focusNode.dispose();
     super.dispose();
   }
 
-  void _handleSend() {
+  void _addAttachment(FileItem file) {
+    setState(() {
+      _selectedAttachments.add(file);
+    });
+  }
+
+  void _removeAttachment(FileItem file) {
+    setState(() {
+      _selectedAttachments.remove(file);
+    });
+  }
+
+  void _send() {
     final text = _controller.text.trim();
-    if (text.isEmpty && widget.selectedAttachments.isEmpty) return;
-    widget.onSend(text);
+    if (text.isEmpty && _selectedAttachments.isEmpty) return;
+
+    widget.onSend(text, List.from(_selectedAttachments));
     _controller.clear();
+    setState(() {
+      _selectedAttachments.clear();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: theme.scaffoldBackgroundColor,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -55,50 +65,86 @@ class _InputBarState extends ConsumerState<InputBar> {
           ),
         ],
       ),
-      child: Column(
-        children: [
-          SelectedAttachments(
-            files: widget.selectedAttachments,
-            onRemove: widget.onRemoveAttachment,
-          ),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              if (widget.onAttachmentsAdded != null)
-                AttachmentPicker(
-                  onAttachmentSelected: widget.onAttachmentsAdded!,
+              if (_selectedAttachments.isNotEmpty) ...[
+                SelectedAttachments(
+                  files: _selectedAttachments,
+                  onRemove: _removeAttachment,
                 ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: AutoSizeTextField(
-                  controller: _controller,
-                  focusNode: _focusNode,
-                  decoration: InputDecoration(
-                    hintText: 'Type a message...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24),
+                const SizedBox(height: 8),
+              ],
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  IconButton(
+                    onPressed: widget.enabled
+                        ? () async {
+                            await AttachmentPicker.show(
+                              context: context,
+                              onFilePicked: _addAttachment,
+                            );
+                          }
+                        : null,
+                    icon: Icon(
+                      Icons.attach_file,
+                      color: widget.enabled
+                          ? theme.colorScheme.onSurface.withOpacity(0.7)
+                          : theme.colorScheme.onSurface.withOpacity(0.3),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
+                    tooltip: 'Add attachment',
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Container(
+                      constraints: const BoxConstraints(
+                        minHeight: 48,
+                        maxHeight: 150,
+                      ),
+                      child: TextField(
+                        controller: _controller,
+                        enabled: widget.enabled,
+                        decoration: const InputDecoration(
+                          hintText: 'Type a message...',
+                          isDense: true,
+                          filled: true,
+                        ),
+                        textInputAction: TextInputAction.send,
+                        keyboardType: TextInputType.multiline,
+                        maxLines: null,
+                        onSubmitted: (_) => _send(),
+                      ),
                     ),
                   ),
-                  maxLines: 6,
-                  minLines: 1,
-                  onSubmitted: (_) => _handleSend(),
-                ),
-              ),
-              const SizedBox(width: 4),
-              IconButton(
-                icon: const Icon(Icons.send, color: Colors.blue),
-                onPressed: _controller.text.trim().isEmpty &&
-                        widget.selectedAttachments.isEmpty
-                    ? null
-                    : () => _handleSend(),
+                  const SizedBox(width: 4),
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 2),
+                    child: IconButton(
+                      onPressed: widget.enabled &&
+                              (_controller.text.trim().isNotEmpty ||
+                                  _selectedAttachments.isNotEmpty)
+                          ? _send
+                          : null,
+                      icon: Icon(
+                        Icons.send_rounded,
+                        color: _controller.text.trim().isNotEmpty ||
+                                _selectedAttachments.isNotEmpty
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurface.withOpacity(0.3),
+                      ),
+                      tooltip: 'Send',
+                      splashRadius: 24,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

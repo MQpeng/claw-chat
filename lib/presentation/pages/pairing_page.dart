@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../../../core/constants/app_config.dart';
+import '../providers/connection_provider.dart';
 
 class PairingPage extends ConsumerStatefulWidget {
   const PairingPage({super.key});
@@ -26,20 +26,12 @@ class _PairingPageState extends ConsumerState<PairingPage> {
   }
 
   Future<void> _loadSavedConfig() async {
-    final prefs = await SharedPreferences.getInstance();
-    final configJson = prefs.getString('app_config');
-    if (configJson != null) {
-      try {
-        final config = AppConfig.fromJson(json.decode(configJson));
-        setState(() {
-          _gatewayUrlController.text = config.gatewayUrl;
-          _tokenController.text = config.token;
-        });
-        // Auto test connection if config exists
-        _testAndConnect();
-      } catch (e) {
-        // Invalid config, ignore
-      }
+    final connection = ref.read(connectionProvider);
+    if (connection.config != null) {
+      setState(() {
+        _gatewayUrlController.text = connection.config!.gatewayUrl;
+        _tokenController.text = connection.config!.token;
+      });
     }
   }
 
@@ -93,13 +85,10 @@ class _PairingPageState extends ConsumerState<PairingPage> {
       return;
     }
 
-    // Save config
+    // Save config via connection provider
     final config = AppConfig(gatewayUrl: gatewayUrl, token: token);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('app_config', json.encode(config.toJson()));
+    await ref.read(connectionProvider.notifier).saveConfig(config);
 
-    // TODO: Implement actual connection test
-    // For now, just save and navigate to chat page
     setState(() {
       _isTesting = false;
     });
@@ -113,6 +102,8 @@ class _PairingPageState extends ConsumerState<PairingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (_isScanning) {
       return Scaffold(
         appBar: AppBar(
@@ -135,91 +126,148 @@ class _PairingPageState extends ConsumerState<PairingPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('claw-chat'),
-        centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: 32),
-            const Icon(
-              Icons.chat_bubble_outline,
-              size: 80,
-              color: Colors.blue,
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Connect to OpenClaw',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: theme.brightness == Brightness.light
+                ? [
+                    Colors.blue.withOpacity(0.02),
+                    Colors.blue.withOpacity(0.05),
+                  ]
+                : [
+                    Colors.blue.withOpacity(0.05),
+                    Colors.transparent,
+                  ],
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 40),
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.chat_bubble_outline,
+                  size: 72,
+                  color: theme.colorScheme.primary,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Scan QR code from OpenClaw Web UI or enter configuration manually',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.grey,
+              const SizedBox(height: 24),
+              const Text(
+                'Connect to OpenClaw',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 48),
-            ElevatedButton.icon(
-              onPressed: _startScan,
-              icon: const Icon(Icons.qr_code_scanner),
-              label: const Text('Scan QR Code'),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 16),
-            const Text('Manual Configuration'),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _gatewayUrlController,
-              decoration: const InputDecoration(
-                labelText: 'Gateway URL',
-                hintText: 'https://your-gateway.example.com',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.link),
-              ),
-              keyboardType: TextInputType.url,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _tokenController,
-              decoration: const InputDecoration(
-                labelText: 'Token',
-                hintText: 'Your pairing token',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.key),
-              ),
-              obscureText: true,
-            ),
-            if (_errorMessage != null) ...[
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Text(
-                _errorMessage!,
-                style: const TextStyle(
-                  color: Colors.red,
+                'Scan QR code from OpenClaw Web UI\nor enter configuration manually',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 48),
+              Card(
+                elevation: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _startScan,
+                        icon: const Icon(Icons.qr_code_scanner),
+                        label: const Text('Scan QR Code'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          textStyle: const TextStyle(fontSize: 16),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const Divider(),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Manual Configuration',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _gatewayUrlController,
+                        decoration: const InputDecoration(
+                          labelText: 'Gateway URL',
+                          hintText: 'https://your-gateway.example.com',
+                          prefixIcon: Icon(Icons.link),
+                        ),
+                        keyboardType: TextInputType.url,
+                        textCapitalization: TextCapitalization.none,
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _tokenController,
+                        decoration: const InputDecoration(
+                          labelText: 'Token',
+                          hintText: 'Your pairing token',
+                          prefixIcon: Icon(Icons.key),
+                        ),
+                        obscureText: true,
+                        textCapitalization: TextCapitalization.none,
+                      ),
+                      if (_errorMessage != null) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            _errorMessage!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 24),
+                      FilledButton(
+                        onPressed: _isTesting ? null : _testAndConnect,
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          textStyle: const TextStyle(fontSize: 16),
+                        ),
+                        child: _isTesting
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text('Save & Connect'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _isTesting ? null : _testAndConnect,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: _isTesting
-                  ? const CircularProgressIndicator()
-                  : const Text('Save & Connect'),
-            ),
-          ],
+          ),
         ),
       ),
     );

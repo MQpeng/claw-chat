@@ -1,76 +1,155 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../data/datasource/local/hive_storage.dart';
 import '../providers/theme_provider.dart';
 import '../providers/connection_provider.dart';
 import '../providers/session_provider.dart';
 
-class SettingsPage extends ConsumerWidget {
+class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends ConsumerState<SettingsPage> {
+  String _version = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    final info = await PackageInfo.fromPlatform();
+    setState(() {
+      _version = '${info.version}+${info.buildNumber}';
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
       ),
       body: ListView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         children: [
-          const SizedBox(height: 8),
-          ListTile(
-            title: const Text('Theme Mode'),
-            subtitle: Text(_themeModeToString(themeMode)),
-            trailing: DropdownButton<ThemeMode>(
-              value: themeMode,
-              onChanged: (newMode) {
-                if (newMode != null) {
-                  ref.read(themeProvider.notifier).setTheme(newMode);
-                }
-              },
-              items: [
-                const DropdownMenuItem(
-                  value: ThemeMode.system,
-                  child: Text('System'),
-                ),
-                const DropdownMenuItem(
-                  value: ThemeMode.light,
-                  child: Text('Light'),
-                ),
-                const DropdownMenuItem(
-                  value: ThemeMode.dark,
-                  child: Text('Dark'),
-                ),
-              ],
+          Card(
+            elevation: 1,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                children: [
+                  ListTile(
+                    title: const Text('Theme Mode'),
+                    subtitle: Text(_themeModeToString(themeMode)),
+                    trailing: DropdownButton<ThemeMode>(
+                      value: themeMode,
+                      onChanged: (newMode) {
+                        if (newMode != null) {
+                          ref.read(themeProvider.notifier).setTheme(newMode);
+                        }
+                      },
+                      items: const [
+                        DropdownMenuItem(
+                          value: ThemeMode.system,
+                          child: Text('System'),
+                        ),
+                        DropdownMenuItem(
+                          value: ThemeMode.light,
+                          child: Text('Light'),
+                        ),
+                        DropdownMenuItem(
+                          value: ThemeMode.dark,
+                          child: Text('Dark'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const Divider(),
-          ListTile(
-            title: const Text('Clear All Sessions'),
-            subtitle: const Text('Delete all sessions and messages'),
-            onTap: () => _clearAllData(context, ref),
-            textColor: Colors.red,
+          const SizedBox(height: 16),
+          Card(
+            elevation: 1,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                children: [
+                  ListTile(
+                    title: const Text(
+                      'Clear All Sessions',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                    subtitle: const Text('Delete all sessions and messages'),
+                    onTap: () => _clearAllData(context, ref),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    title: const Text('Reconnect to OpenClaw'),
+                    subtitle: const Text('Disconnect and reconnect'),
+                    onTap: () {
+                      ref.read(connectionProvider.notifier).disconnect();
+                      ref.read(connectionProvider.notifier).connect();
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
           ),
-          const Divider(),
-          ListTile(
-            title: const Text('Reconnect to OpenClaw'),
-            subtitle: const Text('Disconnect and reconnect'),
-            onTap: () {
-              ref.read(connectionProvider.notifier).disconnect();
-              ref.read(connectionProvider.notifier).connect();
-              if (context.mounted) {
-                Navigator.pop(context);
-              }
-            },
-          ),
-          const Divider(),
-          const AboutListTile(
-            applicationName: 'claw-chat',
-            aboutBoxChildren: [
-              Text('Lightweight Flutter mobile client for OpenClaw'),
-            ],
+          const SizedBox(height: 16),
+          Card(
+            elevation: 1,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                children: [
+                  const AboutListTile(
+                    applicationName: 'claw-chat',
+                    applicationLegalese: 'MIT License',
+                    aboutBoxChildren: [
+                      SizedBox(height: 8),
+                      Text(
+                        'Lightweight Flutter mobile client for OpenClaw\n'
+                        'Connect directly to your OpenClaw Gateway via LAN/Tailscale',
+                      ),
+                    ],
+                  ),
+                  if (_version.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        bottom: 16,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Version'),
+                          Text(
+                            _version,
+                            style: TextStyle(
+                              color: theme.textTheme.bodySmall?.color
+                                      ?.withOpacity(0.6),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -93,7 +172,10 @@ class SettingsPage extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear All Data'),
-        content: const Text('This will delete all sessions and messages. This action cannot be undone.'),
+        content: const Text(
+          'This will delete all sessions and messages.\n'
+          'This action cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

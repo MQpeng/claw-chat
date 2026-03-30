@@ -49,6 +49,14 @@ class ConnectionNotifier extends Notifier<ConnectionState> {
     );
   }
 
+  Future<void> saveConfig(AppConfig config) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('app_config', json.encode(config.toJson()));
+    _client.setConfig(config);
+    state = state.copyWith(config: config);
+    await connect();
+  }
+
   Future<void> loadSavedConfig() async {
     final prefs = await SharedPreferences.getInstance();
     final configJson = prefs.getString('app_config');
