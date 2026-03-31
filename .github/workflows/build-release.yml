@@ -42,7 +42,7 @@ jobs:
           ${{ runner.os }}-flutter-
 
     - name: Get dependencies
-      run: flutter pub get --force
+      run: flutter pub get
 
     - name: Build APK for ${{ matrix.abi }}
       run: flutter build apk --release --target-platform ${{ matrix.target }}
