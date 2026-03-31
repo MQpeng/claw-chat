@@ -47,6 +47,9 @@ jobs:
     - name: Build APK for ${{ matrix.abi }}
       run: flutter build apk --release --target-platform ${{ matrix.target }}
 
+    - name: Rename output APK
+      run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/app-${{ matrix.abi }}-release.apk
+
     - name: Upload build artifact
       uses: actions/upload-artifact@v4
       with:
