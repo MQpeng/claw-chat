@@ -41,6 +41,8 @@ abstract class AppLocalizations {
 
   String get scanQRCodeFromOpenClawWebUI;
 
+  String get enterGatewayUrlAndTokenManually;
+
   String get scanQRCode;
 
   String get manualConfiguration;

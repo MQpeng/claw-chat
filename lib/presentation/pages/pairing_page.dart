@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'dart:convert';
-import '../../../l10n/app_localizations.dart';
 import '../../core/constants/app_config.dart';
 import '../providers/connection_provider.dart';
+import '../../../l10n/app_localizations.dart';
 
 class PairingPage extends ConsumerStatefulWidget {
   const PairingPage({super.key});
@@ -15,7 +13,6 @@ class PairingPage extends ConsumerStatefulWidget {
 }
 
 class _PairingPageState extends ConsumerState<PairingPage> {
-  bool _isScanning = false;
   final _gatewayUrlController = TextEditingController();
   final _tokenController = TextEditingController();
   bool _isTesting = false;
@@ -33,48 +30,6 @@ class _PairingPageState extends ConsumerState<PairingPage> {
       setState(() {
         _gatewayUrlController.text = connection.config!.gatewayUrl;
         _tokenController.text = connection.config!.token;
-      });
-    }
-  }
-
-  void _startScan() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(
-            title: Text(AppLocalizations.of(context)!.scanQRCode),
-          ),
-          body: MobileScanner(
-            onDetect: _onQrScanned,
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _onQrScanned(BarcodeCapture capture) {
-    final barcodes = capture.barcodes;
-    if (barcodes.isEmpty) return;
-
-    final barcode = barcodes.first;
-    final rawValue = barcode.rawValue;
-    if (rawValue == null) return;
-
-    try {
-      final decoded = json.decode(rawValue);
-      final url = decoded['url'] as String;
-      final token = decoded['token'] as String;
-
-      setState(() {
-        _gatewayUrlController.text = url;
-        _tokenController.text = token;
-      });
-
-      Navigator.of(context).pop();
-      _testAndConnect();
-    } catch (e) {
-      setState(() {
-        _errorMessage = AppLocalizations.of(context)!.invalidQRCodeFormat;
       });
     }
   }
@@ -145,12 +100,12 @@ class _PairingPageState extends ConsumerState<PairingPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 20),
+                const SizedBox(height: 40),
                 Center(
                   child: Container(
-                    width: 100,
-                    height: 100,
-                    padding: const EdgeInsets.all(12),
+                    width: 80,
+                    height: 80,
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.primary.withOpacity(0.1),
                       shape: BoxShape.circle,
@@ -172,14 +127,14 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                 ),
                 const SizedBox(height: 8),
                  Text(
-                  l10n.scanQRCodeFromOpenClawWebUI,
+                  l10n.enterGatewayUrlAndTokenManually,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: theme.textTheme.bodyMedium?.color?.withOpacity(0.6),
                     fontSize: 14,
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
                 Card(
                   elevation: 2,
                   child: Padding(
@@ -187,26 +142,6 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        ElevatedButton.icon(
-                          onPressed: _startScan,
-                          icon: const Icon(Icons.qr_code_scanner),
-                           label: Text(l10n.scanQRCode),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            textStyle: const TextStyle(fontSize: 16),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        const Divider(),
-                        const SizedBox(height: 16),
-                         Text(
-                          l10n.manualConfiguration,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
                          TextField(
                           controller: _gatewayUrlController,
                           decoration:  InputDecoration(
@@ -245,7 +180,7 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                             ),
                           ),
                         ],
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
                         FilledButton(
                           onPressed: _isTesting ? null : _testAndConnect,
                           style: FilledButton.styleFrom(
@@ -266,7 +201,7 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
               ],
             ),
           ),

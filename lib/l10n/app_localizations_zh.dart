@@ -11,6 +11,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '从 OpenClaw 网页扫码\n或手动输入配置';
 
   @override
+  String get enterGatewayUrlAndTokenManually =>
+      '请手动输入网关地址和配对令牌';
+
+  @override
   String get scanQRCode => '扫描二维码';
 
   @override

@@ -45,9 +45,7 @@ dependencies:
   dio: ^5.8.0+1
   web_socket_channel: ^3.0.1
 
-  # QR Code
-  mobile_scanner: ^6.0.2
-  qr_flutter: ^4.1.0
+
 
   # Local Storage
   shared_preferences: ^2.5.2

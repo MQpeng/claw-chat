@@ -11,6 +11,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Scan QR code from OpenClaw Web UI\nor enter configuration manually';
 
   @override
+  String get enterGatewayUrlAndTokenManually =>
+      'Please enter your Gateway URL and pairing token manually';
+
+  @override
   String get scanQRCode => 'Scan QR Code';
 
   @override
