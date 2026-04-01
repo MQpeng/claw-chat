@@ -23,8 +23,12 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
     // Initialize Hive and connect
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(connectionProvider.notifier).loadSavedConfig();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(connectionProvider.notifier).loadSavedConfig();
+      // After connection, refresh sessions from gateway
+      if (ref.read(connectionProvider).isConnected) {
+        await ref.read(sessionListProvider.notifier).refreshFromRemote();
+      }
     });
   }
 
