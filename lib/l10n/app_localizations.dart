@@ -1,165 +1,465 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
 import 'app_localizations_zh.dart';
 
-/// Callers can lookup localized strings with an instance of AppLocalizations returned
-/// by `AppLocalizations.of(context)`.
+// ignore_for_file: type=lint
+
+/// Callers can lookup localized strings with an instance of AppLocalizations
+/// returned by `AppLocalizations.of(context)`.
 ///
-/// Applications need to include translation delegate in their [App] widget:
+/// Applications need to include `AppLocalizations.delegate()` in their app's
+/// `localizationDelegates` list, and the locales they support in the app's
+/// `supportedLocales` list. For example:
 ///
 /// ```dart
+/// import 'l10n/app_localizations.dart';
+///
 /// return MaterialApp(
 ///   localizationsDelegates: AppLocalizations.localizationsDelegates,
 ///   supportedLocales: AppLocalizations.supportedLocales,
-///   title: 'claw-chat',
+///   home: MyApplicationHome(),
 /// );
 /// ```
+///
+/// ## Update pubspec.yaml
+///
+/// Please make sure to update your pubspec.yaml to include the following
+/// packages:
+///
+/// ```yaml
+/// dependencies:
+///   # Internationalization support.
+///   flutter_localizations:
+///     sdk: flutter
+///   intl: any # Use the pinned version from flutter_localizations
+///
+///   # Rest of dependencies
+/// ```
+///
+/// ## iOS Applications
+///
+/// iOS applications define key application metadata, including supported
+/// locales, in an Info.plist file that is built into the application bundle.
+/// To configure the locales supported by your app, you’ll need to edit this
+/// file.
+///
+/// First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+/// Then, in the Project Navigator, open the Info.plist file under the Runner
+/// project’s Runner folder.
+///
+/// Next, select the Information Property List item, select Add Item from the
+/// Editor menu, then select Localizations from the pop-up menu.
+///
+/// Select and expand the newly-created Localizations item then, for each
+/// locale your application supports, add a new item and select the locale
+/// you wish to add from the pop-up menu in the Value field. This list should
+/// be consistent with the languages listed in the AppLocalizations.supportedLocales
+/// property.
 abstract class AppLocalizations {
-  AppLocalizations();
+  AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
-
-  static List<LocalizationsDelegate<dynamic>> get localizationsDelegates =>
-      <LocalizationsDelegate<dynamic>>[
-    delegate,
-  ];
-
-  static const List<Locale> supportedLocales = <Locale>[
-    Locale('en'),
-    Locale('zh'),
-  ];
+  final String localeName;
 
   static AppLocalizations? of(BuildContext context) {
     return Localizations.of<AppLocalizations>(context, AppLocalizations);
   }
 
+  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+
+  /// A list of this localizations delegate along with the default localizations
+  /// delegates.
+  ///
+  /// Returns a list of localizations delegates containing this delegate along with
+  /// GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate,
+  /// and GlobalWidgetsLocalizations.delegate.
+  ///
+  /// Additional delegates can be added by appending to this list in
+  /// MaterialApp. This list does not have to be used at all if a custom list
+  /// of delegates is preferred or required.
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
+    delegate,
+    GlobalMaterialLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+  ];
+
+  /// A list of this localizations delegate's supported locales.
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('en'),
+    Locale('zh')
+  ];
+
+  /// No description provided for @connectToOpenClaw.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to OpenClaw'**
   String get connectToOpenClaw;
 
+  /// No description provided for @scanQRCodeFromOpenClawWebUI.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR code from OpenClaw Web UI\nor enter configuration manually'**
   String get scanQRCodeFromOpenClawWebUI;
 
-  String get enterGatewayUrlAndTokenManually;
-
+  /// No description provided for @scanQRCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR Code'**
   String get scanQRCode;
 
+  /// No description provided for @manualConfiguration.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Configuration'**
   String get manualConfiguration;
 
+  /// No description provided for @gatewayURL.
+  ///
+  /// In en, this message translates to:
+  /// **'Gateway URL'**
   String get gatewayURL;
 
+  /// No description provided for @token.
+  ///
+  /// In en, this message translates to:
+  /// **'Token'**
   String get token;
 
+  /// No description provided for @yourPairingToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Your pairing token'**
   String get yourPairingToken;
 
+  /// No description provided for @invalidQRCodeFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid QR code format'**
   String get invalidQRCodeFormat;
 
+  /// No description provided for @pleaseFillInBothGatewayURLAndToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill in both Gateway URL and Token'**
   String get pleaseFillInBothGatewayURLAndToken;
 
+  /// No description provided for @configurationSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration saved'**
   String get configurationSaved;
 
+  /// No description provided for @saveAndConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Save & Connect'**
   String get saveAndConnect;
 
+  /// No description provided for @newSession.
+  ///
+  /// In en, this message translates to:
+  /// **'New Session'**
   String get newSession;
 
+  /// No description provided for @sessionName.
+  ///
+  /// In en, this message translates to:
+  /// **'Session Name'**
   String get sessionName;
 
+  /// No description provided for @enterSessionName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter session name'**
   String get enterSessionName;
 
+  /// No description provided for @create.
+  ///
+  /// In en, this message translates to:
+  /// **'Create'**
   String get create;
 
+  /// No description provided for @deleteSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Session'**
   String get deleteSession;
 
+  /// No description provided for @areYouSureYouWantToDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete'**
   String get areYouSureYouWantToDelete;
 
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
   String get cancel;
 
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
   String get delete;
 
+  /// No description provided for @renameSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename Session'**
   String get renameSession;
 
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
   String get save;
 
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
   String get settings;
 
+  /// No description provided for @themeMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme Mode'**
   String get themeMode;
 
+  /// No description provided for @followSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow system'**
   String get followSystem;
 
+  /// No description provided for @light.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
   String get light;
 
+  /// No description provided for @dark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
   String get dark;
 
+  /// No description provided for @clearAllSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear All Sessions'**
   String get clearAllSessions;
 
+  /// No description provided for @deleteAllSessionsAndMessages.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all sessions and messages'**
   String get deleteAllSessionsAndMessages;
 
+  /// No description provided for @thisActionCannotBeUndone.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone'**
   String get thisActionCannotBeUndone;
 
+  /// No description provided for @allDataCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'All data cleared'**
   String get allDataCleared;
 
+  /// No description provided for @reconnectToOpenClaw.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect to OpenClaw'**
   String get reconnectToOpenClaw;
 
+  /// No description provided for @disconnectAndReconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect and reconnect'**
   String get disconnectAndReconnect;
 
+  /// No description provided for @version.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
   String get version;
 
+  /// No description provided for @openClaw.
+  ///
+  /// In en, this message translates to:
+  /// **'OpenClaw'**
   String get openClaw;
 
+  /// No description provided for @lightweightFlutterMobileClient.
+  ///
+  /// In en, this message translates to:
+  /// **'Lightweight Flutter mobile client for OpenClaw\nConnect directly to your OpenClaw Gateway via LAN/Tailscale'**
   String get lightweightFlutterMobileClient;
 
+  /// No description provided for @selectASessionToStartChatting.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a session to start chatting'**
   String get selectASessionToStartChatting;
 
+  /// No description provided for @notConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnected'**
   String get notConnected;
 
+  /// No description provided for @searchSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Sessions'**
   String get searchSessions;
 
+  /// No description provided for @createNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
   String get createNew;
 
+  /// No description provided for @pairing.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting'**
   String get pairing;
 
+  /// No description provided for @error.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
   String get error;
 
+  /// No description provided for @pleaseSelectASessionFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a session first'**
   String get pleaseSelectASessionFirst;
 
+  /// No description provided for @notConnectedToOpenClaw.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected to OpenClaw'**
   String get notConnectedToOpenClaw;
 
+  /// No description provided for @addAttachment.
+  ///
+  /// In en, this message translates to:
+  /// **'Add attachment'**
   String get addAttachment;
 
+  /// No description provided for @send.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
   String get send;
 
+  /// No description provided for @cameraPermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera permission required for scanning QR code'**
   String get cameraPermissionRequired;
 
+  /// No description provided for @storagePermissionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage permission required for selecting files'**
   String get storagePermissionRequired;
 
+  /// No description provided for @invalidQR.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid QR code'**
   String get invalidQR;
 
+  /// No description provided for @loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading'**
   String get loading;
+
+  /// No description provided for @scanQrOrEnterManually.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR code or enter manually'**
+  String get scanQrOrEnterManually;
+
+  /// No description provided for @or.
+  ///
+  /// In en, this message translates to:
+  /// **'OR'**
+  String get or;
+
+  /// No description provided for @invalidQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid QR code'**
+  String get invalidQrCode;
+
+  /// No description provided for @scanQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR Code'**
+  String get scanQrCode;
+
+  /// No description provided for @showToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Show token'**
+  String get showToken;
+
+  /// No description provided for @hideToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide token'**
+  String get hideToken;
+
+  /// No description provided for @connect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get connect;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'zh'].contains(locale.languageCode);
-
-  @override
-  SynchronousFuture<AppLocalizations> load(Locale locale) {
-    switch (locale.languageCode) {
-      case 'zh':
-        return SynchronousFuture<AppLocalizations>(
-          AppLocalizationsZh(),
-        );
-      case 'en':
-      default:
-        return SynchronousFuture<AppLocalizations>(
-          AppLocalizationsEn(),
-        );
-    }
+  Future<AppLocalizations> load(Locale locale) {
+    return SynchronousFuture<AppLocalizations>(lookupAppLocalizations(locale));
   }
 
   @override
+  bool isSupported(Locale locale) => <String>['en', 'zh'].contains(locale.languageCode);
+
+  @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
+}
+
+AppLocalizations lookupAppLocalizations(Locale locale) {
+
+
+  // Lookup logic when only language code is specified.
+  switch (locale.languageCode) {
+    case 'en': return AppLocalizationsEn();
+    case 'zh': return AppLocalizationsZh();
+  }
+
+  throw FlutterError(
+    'AppLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.'
+  );
 }

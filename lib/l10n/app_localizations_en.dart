@@ -1,18 +1,18 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
-
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
 import 'app_localizations.dart';
 
+// ignore_for_file: type=lint
+
+/// The translations for English (`en`).
 class AppLocalizationsEn extends AppLocalizations {
+  AppLocalizationsEn([String locale = 'en']) : super(locale);
+
   @override
   String get connectToOpenClaw => 'Connect to OpenClaw';
 
   @override
-  String get scanQRCodeFromOpenClawWebUI =>
-      'Scan QR code from OpenClaw Web UI\nor enter configuration manually';
-
-  @override
-  String get enterGatewayUrlAndTokenManually =>
-      'Please enter your Gateway URL and pairing token manually';
+  String get scanQRCodeFromOpenClawWebUI => 'Scan QR code from OpenClaw Web UI\nor enter configuration manually';
 
   @override
   String get scanQRCode => 'Scan QR Code';
@@ -33,8 +33,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invalidQRCodeFormat => 'Invalid QR code format';
 
   @override
-  String get pleaseFillInBothGatewayURLAndToken =>
-      'Please fill in both Gateway URL and Token';
+  String get pleaseFillInBothGatewayURLAndToken => 'Please fill in both Gateway URL and Token';
 
   @override
   String get configurationSaved => 'Configuration saved';
@@ -112,8 +111,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get openClaw => 'OpenClaw';
 
   @override
-  String get lightweightFlutterMobileClient =>
-      'Lightweight Flutter mobile client for OpenClaw\nConnect directly to your OpenClaw Gateway via LAN/Tailscale';
+  String get lightweightFlutterMobileClient => 'Lightweight Flutter mobile client for OpenClaw\nConnect directly to your OpenClaw Gateway via LAN/Tailscale';
 
   @override
   String get selectASessionToStartChatting => 'Select a session to start chatting';
@@ -146,16 +144,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get send => 'Send';
 
   @override
-  String get cameraPermissionRequired =>
-      'Camera permission required for scanning QR code';
+  String get cameraPermissionRequired => 'Camera permission required for scanning QR code';
 
   @override
-  String get storagePermissionRequired =>
-      'Storage permission required for selecting files';
+  String get storagePermissionRequired => 'Storage permission required for selecting files';
 
   @override
   String get invalidQR => 'Invalid QR code';
 
   @override
   String get loading => 'Loading';
+
+  @override
+  String get scanQrOrEnterManually => 'Scan QR code or enter manually';
+
+  @override
+  String get or => 'OR';
+
+  @override
+  String get invalidQrCode => 'Invalid QR code';
+
+  @override
+  String get scanQrCode => 'Scan QR Code';
+
+  @override
+  String get showToken => 'Show token';
+
+  @override
+  String get hideToken => 'Hide token';
+
+  @override
+  String get connect => 'Connect';
 }

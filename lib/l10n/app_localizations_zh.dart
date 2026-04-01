@@ -1,18 +1,18 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
-
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
 import 'app_localizations.dart';
 
+// ignore_for_file: type=lint
+
+/// The translations for Chinese (`zh`).
 class AppLocalizationsZh extends AppLocalizations {
+  AppLocalizationsZh([String locale = 'zh']) : super(locale);
+
   @override
   String get connectToOpenClaw => '连接 OpenClaw';
 
   @override
-  String get scanQRCodeFromOpenClawWebUI =>
-      '从 OpenClaw 网页扫码\n或手动输入配置';
-
-  @override
-  String get enterGatewayUrlAndTokenManually =>
-      '请手动输入网关地址和配对令牌';
+  String get scanQRCodeFromOpenClawWebUI => '从 OpenClaw 网页扫码\n或手动输入配置';
 
   @override
   String get scanQRCode => '扫描二维码';
@@ -111,8 +111,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get openClaw => 'OpenClaw';
 
   @override
-  String get lightweightFlutterMobileClient =>
-      'OpenClaw 轻量级 Flutter 移动客户端\n直接连接到你的 OpenClaw 网关，通过 LAN/Tailscale 直连';
+  String get lightweightFlutterMobileClient => 'OpenClaw 轻量级 Flutter 移动客户端\n直接连接到你的 OpenClaw 网关，通过 LAN/Tailscale 直连';
 
   @override
   String get selectASessionToStartChatting => '选择一个会话开始聊天';
@@ -155,4 +154,25 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get loading => '加载中';
+
+  @override
+  String get scanQrOrEnterManually => '扫描二维码或手动输入';
+
+  @override
+  String get or => '或';
+
+  @override
+  String get invalidQrCode => '二维码无效';
+
+  @override
+  String get scanQrCode => '扫描二维码';
+
+  @override
+  String get showToken => '显示令牌';
+
+  @override
+  String get hideToken => '隐藏令牌';
+
+  @override
+  String get connect => '连接';
 }
