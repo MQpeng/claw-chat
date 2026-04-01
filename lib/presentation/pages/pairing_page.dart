@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'dart:convert';
-import '../../core/constants/app_config';
-import '../providers/connection_provider';
+import '../../core/constants/app_config.dart';
+import '../providers/connection_provider.dart';
 import '../../../l10n/app_localizations.dart';
 
 class PairingPage extends ConsumerStatefulWidget {
