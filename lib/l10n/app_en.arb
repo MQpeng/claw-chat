@@ -52,5 +52,8 @@
   "scanQrOrEnterManually": "Scan QR code or enter manually",
   "or": "OR",
   "invalidQrCode": "Invalid QR code",
-  "scanQrCode": "Scan QR Code"
+  "scanQrCode": "Scan QR Code",
+  "showToken": "Show token",
+  "hideToken": "Hide token",
+  "connect": "Connect"
 }

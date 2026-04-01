@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'dart:convert';
-import '../../core/constants/app_config.dart';
-import '../providers/connection_provider.dart';
+import '../../core/constants/app_config';
+import '../providers/connection_provider';
 import '../../../l10n/app_localizations.dart';
 
 class PairingPage extends ConsumerStatefulWidget {
@@ -20,6 +20,7 @@ class _PairingPageState extends ConsumerState<PairingPage> {
   bool _isTesting = false;
   String? _errorMessage;
   bool _isScanning = false;
+  bool _showToken = false;
 
   @override
   void initState() {
@@ -358,10 +359,11 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                             keyboardType: TextInputType.url,
                             textCapitalization: TextCapitalization.none,
                             autocorrect: false,
+                            onSubmitted: (_) => _testAndConnect(),
                           ),
                           const SizedBox(height: 16),
 
-                          // Token Field
+                          // Token Field with show/hide toggle
                           TextField(
                             controller: _tokenController,
                             decoration: InputDecoration(
@@ -394,10 +396,24 @@ class _PairingPageState extends ConsumerState<PairingPage> {
                                 horizontal: 16,
                                 vertical: 16,
                               ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _showToken ? Icons.visibility_off : Icons.visibility,
+                                ),
+                                tooltip: _showToken
+                                    ? l10n.hideToken
+                                    : l10n.showToken,
+                                onPressed: () {
+                                  setState(() {
+                                    _showToken = !_showToken;
+                                  });
+                                },
+                              ),
                             ),
-                            obscureText: true,
+                            obscureText: !_showToken,
                             textCapitalization: TextCapitalization.none,
                             autocorrect: false,
+                            onSubmitted: (_) => _testAndConnect(),
                           ),
 
                           // Error Message
