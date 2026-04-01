@@ -99,6 +99,7 @@ dependencies:
   video_player: ^2.9.1
   package_info_plus: ^8.1.1
   flutter_svg: ^2.0.17
+  mobile_scanner: ^6.0.2
 
 dev_dependencies:
   flutter_test:

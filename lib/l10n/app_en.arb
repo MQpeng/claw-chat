@@ -48,5 +48,9 @@
   "cameraPermissionRequired": "Camera permission required for scanning QR code",
   "storagePermissionRequired": "Storage permission required for selecting files",
   "invalidQR": "Invalid QR code",
-  "loading": "Loading"
+  "loading": "Loading",
+  "scanQrOrEnterManually": "Scan QR code or enter manually",
+  "or": "OR",
+  "invalidQrCode": "Invalid QR code",
+  "scanQrCode": "Scan QR Code"
 }

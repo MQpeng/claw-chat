@@ -48,5 +48,9 @@
   "cameraPermissionRequired": "扫描二维码需要相机权限",
   "storagePermissionRequired": "选择文件需要存储权限",
   "invalidQR": "二维码无效",
-  "loading": "加载中"
+  "loading": "加载中",
+  "scanQrOrEnterManually": "扫描二维码或手动输入",
+  "or": "或",
+  "invalidQrCode": "二维码无效",
+  "scanQrCode": "扫描二维码"
 }
