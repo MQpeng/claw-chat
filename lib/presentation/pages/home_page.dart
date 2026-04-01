@@ -45,6 +45,21 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _createNewSession() async {
+    final connection = ref.read(connectionProvider);
+    if (!connection.isConnected) {
+      if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
+        ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(
+            content: Text(l10n.notConnectedCannotCreateSession),
+            backgroundColor: Colors.red,
+          ),
+        );
+        ref.read(connectionProvider.notifier).connect();
+      }
+      return;
+    }
+
     final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController();
     final name = await showDialog<String>(
@@ -83,7 +98,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
     );
 
-    if (name != null && name.isNotEmpty) {
+    if (name != null && name.isNotEmpty && mounted) {
       final session = await ref.read(sessionListProvider.notifier).createSession(name);
       ref.read(currentSessionIdProvider.notifier).state = session.id;
     }
@@ -460,10 +475,19 @@ class _HomePageState extends ConsumerState<HomePage> {
           session: session,
           isSelected: session.id == currentSessionId,
           onTap: () {
-            ref.read(currentSessionIdProvider.notifier).state = session.id;
-            if (!ref.read(connectionProvider).isConnected) {
+            final connection = ref.read(connectionProvider);
+            if (!connection.isConnected) {
+              // Not connected, show error and trigger connection
+              ScaffoldMessenger.of(context).showSnackBar(
+                 SnackBar(
+                  content: Text(AppLocalizations.of(context)!.notConnectedCannotOpenSession),
+                  backgroundColor: Colors.red,
+                ),
+              );
               ref.read(connectionProvider.notifier).connect();
+              return;
             }
+            ref.read(currentSessionIdProvider.notifier).state = session.id;
             // Close drawer on mobile
             if (!MediaQuery.of(context).size.width.isFinite ||
                 MediaQuery.of(context).size.width < 600) {

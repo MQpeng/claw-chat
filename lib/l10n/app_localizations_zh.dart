@@ -217,4 +217,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get chooseFile => '选择文件';
+
+  @override
+  String get notConnectedCannotOpenSession => '未连接到 OpenClaw Gateway，无法打开会话。';
+
+  @override
+  String get notConnectedCannotCreateSession => '未连接到 OpenClaw Gateway，无法新建会话。';
 }

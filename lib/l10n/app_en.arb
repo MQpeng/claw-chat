@@ -73,5 +73,7 @@
   "cancel": "Cancel",
   "takePhoto": "Take Photo",
   "chooseFromGallery": "Choose from Gallery",
-  "chooseFile": "Choose File"
+  "chooseFile": "Choose File",
+  "notConnectedCannotOpenSession": "Not connected to OpenClaw Gateway. Cannot open session.",
+  "notConnectedCannotCreateSession": "Not connected to OpenClaw Gateway. Cannot create new session."
 }

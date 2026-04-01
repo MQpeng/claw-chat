@@ -514,6 +514,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose File'**
   String get chooseFile;
+
+  /// No description provided for @notConnectedCannotOpenSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected to OpenClaw Gateway. Cannot open session.'**
+  String get notConnectedCannotOpenSession;
+
+  /// No description provided for @notConnectedCannotCreateSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected to OpenClaw Gateway. Cannot create new session.'**
+  String get notConnectedCannotCreateSession;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

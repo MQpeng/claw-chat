@@ -217,4 +217,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get chooseFile => 'Choose File';
+
+  @override
+  String get notConnectedCannotOpenSession => 'Not connected to OpenClaw Gateway. Cannot open session.';
+
+  @override
+  String get notConnectedCannotCreateSession => 'Not connected to OpenClaw Gateway. Cannot create new session.';
 }
