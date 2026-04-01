@@ -1,14 +1,35 @@
 import 'package:flutter/material.dart';
 
-ThemeData lightTheme() {
+enum AppThemeColor {
+  openclawRed('OpenClaw Red', Color(0xFFdd2d2d), Color(0xFFe55555)),
+  blue('Blue', Color(0xFF2196F3), Color(0xFF64B5F6)),
+  green('Green', Color(0xFF4CAF50), Color(0xFF81C784)),
+  purple('Purple', Color(0xFF9C27B0), Color(0xFFBA68C8)),
+  orange('Orange', Color(0xFFFF9800), Color(0xFFFFB74D));
+
+  const AppThemeColor(this.name, this.primary, this.primaryLight);
+  final String name;
+  final Color primary;
+  final Color primaryLight;
+
+  static AppThemeColor fromName(String? name) {
+    if (name == null) return AppThemeColor.openclawRed;
+    return AppThemeColor.values.firstWhere(
+      (e) => e.name == name,
+      orElse: () => AppThemeColor.openclawRed,
+    );
+  }
+}
+
+ThemeData lightTheme(AppThemeColor themeColor) {
   return ThemeData(
     useMaterial3: true,
     brightness: Brightness.light,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: const Color(0xFF2196F3),
+      seedColor: themeColor.primary,
       brightness: Brightness.light,
-      primary: const Color(0xFF2196F3),
-      secondary: const Color(0xFF64B5F6),
+      primary: themeColor.primary,
+      secondary: themeColor.primaryLight,
       background: const Color(0xFFF5F7FA),
       surface: Colors.white,
     ),
@@ -29,8 +50,8 @@ ThemeData lightTheme() {
         borderRadius: BorderRadius.circular(12),
       ),
     ),
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: Color(0xFF2196F3),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: themeColor.primary,
       foregroundColor: Colors.white,
       elevation: 2,
     ),
@@ -47,7 +68,7 @@ ThemeData lightTheme() {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF2196F3), width: 2),
+        borderSide: BorderSide(color: themeColor.primary, width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     ),
@@ -59,15 +80,15 @@ ThemeData lightTheme() {
   );
 }
 
-ThemeData darkTheme() {
+ThemeData darkTheme(AppThemeColor themeColor) {
   return ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: const Color(0xFF2196F3),
+      seedColor: themeColor.primary,
       brightness: Brightness.dark,
-      primary: const Color(0xFF64B5F6),
-      secondary: const Color(0xFF90CAF9),
+      primary: themeColor.primaryLight,
+      secondary: themeColor.primary,
       background: const Color(0xFF121212),
       surface: const Color(0xFF1E1E1E),
     ),
@@ -88,8 +109,8 @@ ThemeData darkTheme() {
         borderRadius: BorderRadius.circular(12),
       ),
     ),
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: Color(0xFF64B5F6),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: themeColor.primaryLight,
       foregroundColor: Colors.white,
       elevation: 2,
     ),
@@ -106,7 +127,7 @@ ThemeData darkTheme() {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: Color(0xFF64B5F6), width: 2),
+        borderSide: BorderSide(color: themeColor.primaryLight, width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     ),

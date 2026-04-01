@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../data/datasource/local/hive_storage.dart';
 import '../providers/theme_provider.dart';
 import '../providers/connection_provider.dart';
@@ -32,6 +33,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
+    final themeColor = ref.watch(themeColorProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -71,6 +73,39 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           child: Text('Dark'),
                         ),
                       ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    title: const Text('Theme Color'),
+                    subtitle: Text(themeColor.name),
+                    trailing: DropdownButton<AppThemeColor>(
+                      value: themeColor,
+                      onChanged: (newColor) {
+                        if (newColor != null) {
+                          ref.read(themeColorProvider.notifier).setThemeColor(newColor);
+                        }
+                      },
+                      items: AppThemeColor.values.map((color) {
+                        return DropdownMenuItem<AppThemeColor>(
+                          value: color,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 16,
+                                height: 16,
+                                decoration: BoxDecoration(
+                                  color: color.primary,
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(color.name),
+                            ],
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ),
                 ],

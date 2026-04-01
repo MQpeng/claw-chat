@@ -22,11 +22,13 @@ class ClawChatApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeProvider);
+    final themeColor = ref.watch(themeColorProvider);
     final connection = ref.watch(connectionProvider);
 
-    // Load theme on first build
+    // Load theme settings on first build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(themeProvider.notifier).loadTheme();
+      ref.read(themeColorProvider.notifier).loadThemeColor();
     });
 
     return MaterialApp(
@@ -34,8 +36,8 @@ class ClawChatApp extends ConsumerWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       title: 'claw-chat',
       debugShowCheckedModeBanner: false,
-      theme: lightTheme(),
-      darkTheme: darkTheme(),
+      theme: lightTheme(themeColor),
+      darkTheme: darkTheme(themeColor),
       themeMode: themeMode,
       home: connection.config == null ? const PairingPage() : const HomePage(),
     );
