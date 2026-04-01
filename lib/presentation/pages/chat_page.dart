@@ -5,6 +5,7 @@ import '../../../domain/entities/chat_message.dart';
 import '../../../domain/entities/message_role.dart';
 import '../../../domain/entities/message_status.dart';
 import '../../../domain/entities/file_item.dart';
+import '../../../data/datasource/remote/openclaw_client.dart';
 import '../providers/session_provider.dart';
 import '../providers/chat_provider.dart';
 import '../providers/connection_provider.dart';
@@ -54,6 +55,110 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     });
   }
 
+  Future<void> _executeSlashCommand(
+    String command,
+    String args,
+    String fullText,
+    List<FileItem> attachments,
+    OpenClawClient client,
+    String currentSessionId,
+  ) async {
+    // Execute slash command and show result as system message
+    final result = await client.request(command == 'clear' || command == 'reset'
+        ? 'chat.clear'
+        : command == 'compact'
+            ? 'sessions.compact'
+            : 'sessions.patch', {
+      'key': currentSessionId,
+      if (command == 'model' && args.isNotEmpty) 'model': args.trim(),
+      if (command == 'think') 'thinkingLevel': args.trim(),
+      if (command == 'fast') 'fastMode': args.trim() == 'on',
+      if (command == 'verbose') 'verboseLevel': args.trim(),
+    });
+
+    // Special handling for commands with side effects
+    switch (command) {
+      case 'new':
+        // Create new session
+        ref.read(sessionListProvider.notifier).createSession(args.isNotEmpty ? args : 'New Session');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Created new session')),
+          );
+        }
+        return;
+      case 'clear':
+        // Clear all messages in current session
+        await ref.read(chatMessagesProvider.notifier).clearCurrentSession();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Chat history cleared')),
+          );
+        }
+        return;
+      case 'reset':
+        // Reset conversation
+        await ref.read(chatMessagesProvider.notifier).clearCurrentSession();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Session reset')),
+          );
+        }
+        return;
+      case 'compact':
+        // Context compacted
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Context compacted successfully')),
+          );
+        }
+        ref.refresh(sessionListProvider.notifier).refreshFromRemote();
+        return;
+      case 'focus':
+        // toggle focus mode handled by gateway, refresh sessions
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Focus mode toggled')),
+          );
+        }
+        return;
+      case 'stop':
+        // Stop current run
+        if (ref.read(chatMessagesProvider.notifier).currentRunId != null) {
+          // Gateway will handle abort
+          await client.request('chat.abort', {'sessionKey': currentSessionId});
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Current run stopped')),
+            );
+          }
+        }
+        return;
+      case 'help':
+        // Show help already handled by client, display result
+        break;
+      default:
+        // Other commands let gateway respond
+        break;
+    }
+
+    // Show command result as system message
+    final content = result is Map ? result['content']?.toString() ?? '' : result.toString();
+    if (content.isEmpty) return;
+
+    final systemMessage = ChatMessage(
+      id: const Uuid().v4(),
+      sessionId: currentSessionId,
+      role: MessageRole.system,
+      content: content,
+      createdAt: DateTime.now(),
+      status: MessageStatus.sent,
+    );
+
+    await ref.read(chatMessagesProvider.notifier).saveMessage(systemMessage);
+    _scrollToBottom();
+  }
+
   Future<void> _sendMessage(String text, List<FileItem> attachments) async {
     final currentSessionId = ref.read(currentSessionIdProvider);
     if (currentSessionId == null) {
@@ -68,6 +173,19 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Not connected to OpenClaw')),
       );
+      return;
+    }
+
+    // Check if this is a slash command
+    if (text.startsWith('/')) {
+      final trimmed = text.trim();
+      final firstSpace = trimmed.indexOf(' ');
+      final commandName = firstSpace > 0
+          ? trimmed.substring(1, firstSpace)
+          : trimmed.substring(1);
+      final args = firstSpace > 0 ? trimmed.substring(firstSpace + 1).trim() : '';
+      final client = ref.read(connectionProvider.notifier).client;
+      await _executeSlashCommand(commandName, args, trimmed, attachments, client, currentSessionId);
       return;
     }
 

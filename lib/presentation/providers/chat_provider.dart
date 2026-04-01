@@ -11,6 +11,12 @@ final chatMessagesProvider = NotifierProvider<ChatMessagesNotifier, List<ChatMes
 
 class ChatMessagesNotifier extends Notifier<List<ChatMessage>> {
   late final MessageRepository _repository;
+  String? _currentRunId;
+
+  String? get currentRunId => _currentRunId;
+  set currentRunId(String? id) {
+    _currentRunId = id;
+  }
 
   @override
   List<ChatMessage> build() {
@@ -50,6 +56,9 @@ class ChatMessagesNotifier extends Notifier<List<ChatMessage>> {
 
     await _repository.saveMessage(message);
     refreshForCurrentSession();
+    if (role == MessageRole.assistant && message.status.isSending) {
+      _currentRunId = message.id;
+    }
     return message;
   }
 

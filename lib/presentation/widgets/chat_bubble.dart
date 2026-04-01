@@ -10,17 +10,47 @@ class ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.role.isUser;
+    final isSystem = message.role.isSystem;
     final theme = Theme.of(context);
     final primaryColor = isUser
         ? theme.colorScheme.primary
-        : (theme.brightness == Brightness.dark
-            ? theme.colorScheme.surfaceVariant
-            : Colors.grey[200]);
+        : isSystem
+            ? theme.colorScheme.secondaryContainer
+            : (theme.brightness == Brightness.dark
+                ? theme.colorScheme.surfaceVariant
+                : Colors.grey[200]);
     final textColor = isUser
         ? Colors.white
-        : (theme.brightness == Brightness.dark
-            ? Colors.white
-            : Colors.black87);
+        : isSystem
+            ? theme.colorScheme.onSecondaryContainer
+            : (theme.brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black87);
+
+    if (isSystem) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 6,
+            ),
+            decoration: BoxDecoration(
+              color: primaryColor,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              message.content,
+              style: TextStyle(
+                color: textColor,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -57,8 +87,8 @@ class ChatBubble extends StatelessWidget {
                       bottomRight: isUser
                           ? Radius.zero
                           : const Radius.circular(20),
-                      topLeft: const Radius.circular(20),
-                      topRight: const Radius.circular(20),
+                          topLeft: const Radius.circular(20),
+                          topRight: const Radius.circular(20),
                     ),
                     boxShadow: [
                       BoxShadow(

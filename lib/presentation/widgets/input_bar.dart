@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/entities/file_item.dart';
 import 'attachment_picker.dart';
 import 'selected_attachments.dart';
+import 'slash_command_autocomplete.dart';
 
 class InputBar extends ConsumerStatefulWidget {
   final Function(String text, List<FileItem> attachments) onSend;
@@ -21,10 +22,12 @@ class InputBar extends ConsumerStatefulWidget {
 class _InputBarState extends ConsumerState<InputBar> {
   final _controller = TextEditingController();
   final List<FileItem> _selectedAttachments = [];
+  final _focusNode = FocusNode();
 
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -51,6 +54,15 @@ class _InputBarState extends ConsumerState<InputBar> {
     });
   }
 
+  void _onSlashCommandSelected(String command, String args) {
+    setState(() {
+      _controller.text = '/$command $args';
+    });
+    _controller.selection = TextSelection.fromPosition(
+      TextPosition(offset: _controller.text.length),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -71,6 +83,14 @@ class _InputBarState extends ConsumerState<InputBar> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (_controller.text.startsWith('/')) ...[
+                SlashCommandAutocomplete(
+                  currentText: _controller.text,
+                  focusNode: _focusNode,
+                  onSelected: _onSlashCommandSelected,
+                ),
+                const SizedBox(height: 8),
+              ],
               if (_selectedAttachments.isNotEmpty) ...[
                 SelectedAttachments(
                   files: _selectedAttachments,
@@ -108,6 +128,7 @@ class _InputBarState extends ConsumerState<InputBar> {
                       child: TextField(
                         controller: _controller,
                         enabled: widget.enabled,
+                        focusNode: _focusNode,
                         decoration: const InputDecoration(
                           hintText: 'Type a message...',
                           isDense: true,
@@ -116,6 +137,9 @@ class _InputBarState extends ConsumerState<InputBar> {
                         textInputAction: TextInputAction.send,
                         keyboardType: TextInputType.multiline,
                         maxLines: null,
+                        onChanged: (_) {
+                          setState(() {});
+                        },
                         onSubmitted: (_) => _send(),
                       ),
                     ),
