@@ -150,7 +150,7 @@ class OpenClawClient {
           'operator.approvals',
           'operator.pairing',
         ],
-        'caps': ['tool-events'],
+        'caps': ['tool-events', 'camera'],
         'auth': {
           'token': _config!.token,
         },

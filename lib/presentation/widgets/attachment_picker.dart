@@ -4,6 +4,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../domain/entities/file_item.dart';
 import '../../../domain/entities/file_item_type.dart';
 
@@ -14,6 +15,8 @@ class AttachmentPicker {
     required BuildContext context,
     required OnAttachmentSelected onFilePicked,
   }) async {
+    final l10n = AppLocalizations.of(context)!;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -28,28 +31,55 @@ class AttachmentPicker {
                 backgroundColor: Colors.blue,
                 child: FaIcon(FontAwesomeIcons.camera, color: Colors.white),
               ),
-              title: const Text('Take Photo'),
+              title: Text(l10n.takePhoto),
               onTap: () async {
                 Navigator.pop(context);
                 final status = await Permission.camera.request();
-                if (!status.isGranted && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Camera permission required')),
+                if (status.isGranted) {
+                  final picker = ImagePicker();
+                  final XFile? image = await picker.pickImage(source: ImageSource.camera);
+                  if (image == null) return;
+                  final file = FileItem(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    name: image.name,
+                    size: await image.readAsBytes().then((value) => value.length),
+                    mimeType: 'image/jpeg',
+                    type: FileItemType.image,
+                    localPath: image.path,
+                  );
+                  onFilePicked(file);
+                  return;
+                }
+
+                if (status.isPermanentlyDenied && context.mounted) {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(l10n.cameraPermissionRequired),
+                      content: Text(l10n.cameraPermissionPermanentlyDenied),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(l10n.cancel),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            openAppSettings();
+                          },
+                          child: Text(l10n.openSettings),
+                        ),
+                      ],
+                    ),
                   );
                   return;
                 }
-                final picker = ImagePicker();
-                final XFile? image = await picker.pickImage(source: ImageSource.camera);
-                if (image == null) return;
-                final file = FileItem(
-                  id: DateTime.now().millisecondsSinceEpoch.toString(),
-                  name: image.name,
-                  size: await image.readAsBytes().then((value) => value.length),
-                  mimeType: 'image/jpeg',
-                  type: FileItemType.image,
-                  localPath: image.path,
-                );
-                onFilePicked(file);
+
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.cameraPermissionRequired)),
+                  );
+                }
               },
             ),
             ListTile(
@@ -57,21 +87,56 @@ class AttachmentPicker {
                 backgroundColor: Colors.green,
                 child: FaIcon(FontAwesomeIcons.image, color: Colors.white),
               ),
-              title: const Text('Choose from Gallery'),
+              title: Text(l10n.chooseFromGallery),
               onTap: () async {
                 Navigator.pop(context);
-                final picker = ImagePicker();
-                final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-                if (image == null) return;
-                final file = FileItem(
-                  id: DateTime.now().millisecondsSinceEpoch.toString(),
-                  name: image.name,
-                  size: await image.readAsBytes().then((value) => value.length),
-                  mimeType: 'image/jpeg',
-                  type: FileItemType.image,
-                  localPath: image.path,
-                );
-                onFilePicked(file);
+                // Photo gallery needs photos permission on Android
+                final status = await Permission.photos.request();
+                if (status.isGranted) {
+                  final picker = ImagePicker();
+                  final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                  if (image == null) return;
+                  final file = FileItem(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    name: image.name,
+                    size: await image.readAsBytes().then((value) => value.length),
+                    mimeType: 'image/jpeg',
+                    type: FileItemType.image,
+                    localPath: image.path,
+                  );
+                  onFilePicked(file);
+                  return;
+                }
+
+                if (status.isPermanentlyDenied && context.mounted) {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(l10n.storagePermissionRequired),
+                      content: Text(l10n.storagePermissionPermanentlyDenied),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(l10n.cancel),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            openAppSettings();
+                          },
+                          child: Text(l10n.openSettings),
+                        ),
+                      ],
+                    ),
+                  );
+                  return;
+                }
+
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.storagePermissionRequired)),
+                  );
+                }
               },
             ),
             ListTile(
@@ -79,45 +144,72 @@ class AttachmentPicker {
                 backgroundColor: Colors.orange,
                 child: FaIcon(FontAwesomeIcons.file, color: Colors.white),
               ),
-              title: const Text('Choose File'),
+              title: Text(l10n.chooseFile),
               onTap: () async {
                 Navigator.pop(context);
                 final status = await Permission.storage.request();
-                if (!status.isGranted && context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Storage permission required')),
+                if (status.isGranted) {
+                  final result = await FilePicker.platform.pickFiles(
+                    allowMultiple: false,
+                    withData: false,
+                  );
+                  if (result == null || result.files.isEmpty) return;
+                  final fileInfo = result.files.first;
+                  FileItemType type = FileItemType.other;
+                  final extension = fileInfo.extension?.toLowerCase() ?? '';
+                  final mimeType = _getMimeType(extension);
+
+                  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(extension)) {
+                    type = FileItemType.image;
+                  } else if (['mp4', 'mov', 'avi', 'mkv'].contains(extension)) {
+                    type = FileItemType.video;
+                  } else if (['mp3', 'wav', 'ogg', 'flac'].contains(extension)) {
+                    type = FileItemType.audio;
+                  } else if (extension == 'pdf') {
+                    type = FileItemType.pdf;
+                  }
+
+                  final file = FileItem(
+                    id: DateTime.now().millisecondsSinceEpoch.toString() + (fileInfo.name ?? ''),
+                    name: fileInfo.name ?? 'unknown',
+                    size: fileInfo.size ?? 0,
+                    mimeType: mimeType,
+                    type: type,
+                    localPath: fileInfo.path,
+                  );
+                  onFilePicked(file);
+                  return;
+                }
+
+                if (status.isPermanentlyDenied && context.mounted) {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text(l10n.storagePermissionRequired),
+                      content: Text(l10n.storagePermissionPermanentlyDenied),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(l10n.cancel),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            openAppSettings();
+                          },
+                          child: Text(l10n.openSettings),
+                        ),
+                      ],
+                    ),
                   );
                   return;
                 }
-                final result = await FilePicker.platform.pickFiles(
-                  allowMultiple: false,
-                  withData: false,
-                );
-                if (result == null || result.files.isEmpty) return;
-                final fileInfo = result.files.first;
-                FileItemType type = FileItemType.other;
-                final extension = fileInfo.extension?.toLowerCase() ?? '';
-                final mimeType = _getMimeType(extension);
 
-                if (['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(extension)) {
-                  type = FileItemType.image;
-                } else if (['mp4', 'mov', 'avi', 'mkv'].contains(extension)) {
-                  type = FileItemType.video;
-                } else if (['mp3', 'wav', 'ogg', 'flac'].contains(extension)) {
-                  type = FileItemType.audio;
-                } else if (extension == 'pdf') {
-                  type = FileItemType.pdf;
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.storagePermissionRequired)),
+                  );
                 }
-
-                final file = FileItem(
-                  id: DateTime.now().millisecondsSinceEpoch.toString() + (fileInfo.name ?? ''),
-                  name: fileInfo.name ?? 'unknown',
-                  size: fileInfo.size ?? 0,
-                  mimeType: mimeType,
-                  type: type,
-                  localPath: fileInfo.path,
-                );
-                onFilePicked(file);
               },
             ),
             const SizedBox(height: 8),

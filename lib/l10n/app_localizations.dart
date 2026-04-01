@@ -368,13 +368,13 @@ abstract class AppLocalizations {
   /// No description provided for @cameraPermissionRequired.
   ///
   /// In en, this message translates to:
-  /// **'Camera permission required for scanning QR code'**
+  /// **'Camera permission is required for scanning QR code'**
   String get cameraPermissionRequired;
 
   /// No description provided for @storagePermissionRequired.
   ///
   /// In en, this message translates to:
-  /// **'Storage permission required for selecting files'**
+  /// **'Storage permission is required for selecting files'**
   String get storagePermissionRequired;
 
   /// No description provided for @invalidQR.
@@ -430,6 +430,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connect'**
   String get connect;
+
+  /// No description provided for @disconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnected'**
+  String get disconnected;
+
+  /// No description provided for @connecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting'**
+  String get connecting;
+
+  /// No description provided for @connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get connected;
+
+  /// No description provided for @connectionError.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection Error'**
+  String get connectionError;
+
+  /// No description provided for @openClawMobileClient.
+  ///
+  /// In en, this message translates to:
+  /// **'OpenClaw Mobile Client'**
+  String get openClawMobileClient;
+
+  /// No description provided for @chat.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat'**
+  String get chat;
+
+  /// No description provided for @voice.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice'**
+  String get voice;
+
+  /// No description provided for @screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen'**
+  String get screen;
+
+  /// No description provided for @cameraPermissionPermanentlyDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera permission has been permanently denied. Please enable it in app settings.'**
+  String get cameraPermissionPermanentlyDenied;
+
+  /// No description provided for @storagePermissionPermanentlyDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage permission has been permanently denied. Please enable it in app settings.'**
+  String get storagePermissionPermanentlyDenied;
+
+  /// No description provided for @openSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get openSettings;
+
+  /// No description provided for @takePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take Photo'**
+  String get takePhoto;
+
+  /// No description provided for @chooseFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from Gallery'**
+  String get chooseFromGallery;
+
+  /// No description provided for @chooseFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose File'**
+  String get chooseFile;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

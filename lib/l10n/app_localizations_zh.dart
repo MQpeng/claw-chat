@@ -144,7 +144,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get send => '发送';
 
   @override
-  String get cameraPermissionRequired => '扫描二维码需要相机权限';
+  String get cameraPermissionRequired => '扫码需要相机权限';
 
   @override
   String get storagePermissionRequired => '选择文件需要存储权限';
@@ -175,4 +175,46 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get connect => '连接';
+
+  @override
+  String get disconnected => '未连接';
+
+  @override
+  String get connecting => '连接中';
+
+  @override
+  String get connected => '已连接';
+
+  @override
+  String get connectionError => '连接错误';
+
+  @override
+  String get openClawMobileClient => 'OpenClaw 移动端';
+
+  @override
+  String get chat => '聊天';
+
+  @override
+  String get voice => '语音';
+
+  @override
+  String get screen => '投屏';
+
+  @override
+  String get cameraPermissionPermanentlyDenied => '相机权限已被永久拒绝，请在应用设置中开启。';
+
+  @override
+  String get storagePermissionPermanentlyDenied => '存储权限已被永久拒绝，请在应用设置中开启。';
+
+  @override
+  String get openSettings => '打开设置';
+
+  @override
+  String get takePhoto => '拍照';
+
+  @override
+  String get chooseFromGallery => '从相册选择';
+
+  @override
+  String get chooseFile => '选择文件';
 }

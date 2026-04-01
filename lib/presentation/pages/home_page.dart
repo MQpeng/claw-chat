@@ -9,6 +9,17 @@ import 'settings_page.dart';
 import 'chat_page.dart';
 import '../widgets/session_list_item.dart';
 
+enum HomeMenuItem {
+  chat(icon: Icons.chat_bubble_outline, label: 'Chat'),
+  voice(icon: Icons.mic_none, label: 'Voice'),
+  screen(icon: Icons.desktop_windows_outlined, label: 'Screen'),
+  settings(icon: Icons.settings_outlined, label: 'Settings');
+
+  const HomeMenuItem({required this.icon, required this.label});
+  final IconData icon;
+  final String label;
+}
+
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
@@ -18,6 +29,7 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   bool _didAutoCreate = false;
+  HomeMenuItem _selectedMenuItem = HomeMenuItem.chat;
   
   @override
   void initState() {
@@ -148,6 +160,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     final sessions = ref.watch(sessionListProvider);
     final currentSessionId = ref.watch(currentSessionIdProvider);
     final connection = ref.watch(connectionProvider);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     // Check if we have any sessions, if not create one automatically
     if (sessions.isEmpty && connection.isConnected && !_didAutoCreate) {
@@ -157,73 +171,263 @@ class _HomePageState extends ConsumerState<HomePage> {
       });
     }
 
+    // Get connection status visual
+    final status = connection.status;
+    final (statusColor, statusText) = _getStatusInfo(context, status);
+
     // Mobile layout - show session list or chat page
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
 
     return Scaffold(
-      drawer: isTablet
-          ? null
-          : Drawer(
-              child: _buildSessionList(context, sessions, currentSessionId),
+      drawer: Drawer(
+        child: Column(
+          children: [
+            // Drawer header with app info
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  const Text(
+                    'OpenClaw',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.openClawMobileClient,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
             ),
+            // Menu items
+            ...HomeMenuItem.values.map((item) {
+              final isSelected = _selectedMenuItem == item;
+              return ListTile(
+                leading: Icon(
+                  item.icon,
+                  color: isSelected
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                ),
+                title: Text(
+                  _getMenuItemLabel(item, l10n),
+                  style: TextStyle(
+                    color: isSelected
+                        ? Theme.of(context).colorScheme.primary
+                        : null,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+                selected: isSelected,
+                onTap: () {
+                  setState(() {
+                    _selectedMenuItem = item;
+                  });
+                  Navigator.pop(context);
+                },
+              );
+            }).toList(),
+            const Spacer(),
+            // Status info
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: statusColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    statusText,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
       appBar: AppBar(
-        centerTitle: true,
-        leading: isTablet
-            ? null
-            : Builder(
-                builder: (context) => IconButton(
-                  icon: const Icon(Icons.menu),
-                  onPressed: () => Scaffold.of(context).openDrawer(),
+        centerTitle: false,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _getMenuItemLabel(_selectedMenuItem, l10n),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: statusColor.withOpacity(0.5),
+                  width: 1,
                 ),
               ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: statusColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    statusText,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () async {
-              final selected = await showSearch<ChatSession?>(
-                context: context,
-                delegate: SessionSearchDelegate(ref),
-              );
-              if (selected != null && context.mounted) {
-                ref.read(currentSessionIdProvider.notifier).state = selected.id;
-                if (!ref.read(connectionProvider).isConnected) {
-                  ref.read(connectionProvider.notifier).connect();
+          if (_selectedMenuItem == HomeMenuItem.chat) ...[
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () async {
+                final selected = await showSearch<ChatSession?>(
+                  context: context,
+                  delegate: SessionSearchDelegate(ref),
+                );
+                if (selected != null && context.mounted) {
+                  ref.read(currentSessionIdProvider.notifier).state = selected.id;
+                  if (!ref.read(connectionProvider).isConnected) {
+                    ref.read(connectionProvider.notifier).connect();
+                  }
                 }
-              }
-            },
-            tooltip: l10n.searchSessions,
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsPage()),
-              );
-            },
-            tooltip: l10n.settings,
-          ),
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _createNewSession,
-            tooltip: l10n.createNew,
-          ),
+              },
+              tooltip: l10n.searchSessions,
+            ),
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: _createNewSession,
+              tooltip: l10n.createNew,
+            ),
+          ],
+          if (_selectedMenuItem == HomeMenuItem.settings)
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SettingsPage()),
+                );
+              },
+              tooltip: l10n.settings,
+            ),
         ],
       ),
-      body: isTablet
-          ? Row(
-              children: [
-                SizedBox(
-                  width: 300,
-                  child: _buildSessionList(context, sessions, currentSessionId),
-                ),
-              ],
-            )
-          : currentSessionId == null
-              ? _buildSessionList(context, sessions, currentSessionId)
-              : const ChatPage(),
+      body: _buildBody(
+        context,
+        _selectedMenuItem,
+        sessions,
+        currentSessionId,
+        isTablet,
+      ),
     );
+  }
+
+  (Color, String) _getStatusInfo(BuildContext context, ConnectionStatus status) {
+    final theme = Theme.of(context);
+    switch (status) {
+      case ConnectionStatus.disconnected:
+        return (Colors.grey[600]!, AppLocalizations.of(context)!.disconnected);
+      case ConnectionStatus.connecting:
+        return (Colors.orange, AppLocalizations.of(context)!.connecting);
+      case ConnectionStatus.connected:
+        return (Colors.green, AppLocalizations.of(context)!.connected);
+      case ConnectionStatus.error:
+        return (Colors.red, AppLocalizations.of(context)!.connectionError);
+    }
+  }
+
+  String _getMenuItemLabel(HomeMenuItem item, AppLocalizations l10n) {
+    switch (item) {
+      case HomeMenuItem.chat:
+        return l10n.chat;
+      case HomeMenuItem.voice:
+        return l10n.voice;
+      case HomeMenuItem.screen:
+        return l10n.screen;
+      case HomeMenuItem.settings:
+        return l10n.settings;
+    }
+  }
+
+  Widget _buildBody(
+    BuildContext context,
+    HomeMenuItem selected,
+    List<ChatSession> sessions,
+    String? currentSessionId,
+    bool isTablet,
+  ) {
+    switch (selected) {
+      case HomeMenuItem.chat:
+        if (currentSessionId == null) {
+          return _buildSessionList(context, sessions, currentSessionId);
+        }
+        return isTablet
+            ? Row(
+                children: [
+                  SizedBox(
+                    width: 300,
+                    child: _buildSessionList(context, sessions, currentSessionId),
+                  ),
+                  const Expanded(child: ChatPage()),
+                ],
+              )
+            : const ChatPage();
+      case HomeMenuItem.voice:
+        return const Center(
+          child: Text('Voice coming soon...'),
+        );
+      case HomeMenuItem.screen:
+        return const Center(
+          child: Text('Screen coming soon...'),
+        );
+      case HomeMenuItem.settings:
+        return const SettingsPage();
+    }
   }
 
   Widget _buildSessionList(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'dart:convert';
 import '../../core/constants/app_config.dart';
 import '../providers/connection_provider.dart';
@@ -70,10 +71,47 @@ class _PairingPageState extends ConsumerState<PairingPage> {
     );
   }
 
-  void _startQrScan() {
-    setState(() {
-      _isScanning = true;
-    });
+  void _startQrScan() async {
+    // Request camera permission first
+    final status = await Permission.camera.request();
+    if (status.isGranted) {
+      setState(() {
+        _isScanning = true;
+      });
+      return;
+    }
+
+    if (status.isPermanentlyDenied && mounted) {
+      // Show dialog to open app settings
+      final l10n = AppLocalizations.of(context)!;
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(l10n.cameraPermissionRequired),
+          content: Text(l10n.cameraPermissionPermanentlyDenied),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                openAppSettings();
+              },
+              child: Text(l10n.openSettings),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(AppLocalizations.of(context)!.cameraPermissionRequired)),
+      );
+    }
   }
 
   void _handleQrScan(String? qrText) {

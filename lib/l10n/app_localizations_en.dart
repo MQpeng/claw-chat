@@ -144,10 +144,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get send => 'Send';
 
   @override
-  String get cameraPermissionRequired => 'Camera permission required for scanning QR code';
+  String get cameraPermissionRequired => 'Camera permission is required for scanning QR code';
 
   @override
-  String get storagePermissionRequired => 'Storage permission required for selecting files';
+  String get storagePermissionRequired => 'Storage permission is required for selecting files';
 
   @override
   String get invalidQR => 'Invalid QR code';
@@ -175,4 +175,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get connect => 'Connect';
+
+  @override
+  String get disconnected => 'Disconnected';
+
+  @override
+  String get connecting => 'Connecting';
+
+  @override
+  String get connected => 'Connected';
+
+  @override
+  String get connectionError => 'Connection Error';
+
+  @override
+  String get openClawMobileClient => 'OpenClaw Mobile Client';
+
+  @override
+  String get chat => 'Chat';
+
+  @override
+  String get voice => 'Voice';
+
+  @override
+  String get screen => 'Screen';
+
+  @override
+  String get cameraPermissionPermanentlyDenied => 'Camera permission has been permanently denied. Please enable it in app settings.';
+
+  @override
+  String get storagePermissionPermanentlyDenied => 'Storage permission has been permanently denied. Please enable it in app settings.';
+
+  @override
+  String get openSettings => 'Open Settings';
+
+  @override
+  String get takePhoto => 'Take Photo';
+
+  @override
+  String get chooseFromGallery => 'Choose from Gallery';
+
+  @override
+  String get chooseFile => 'Choose File';
 }
