@@ -13,40 +13,158 @@ class OpenClawClient {
   AppConfig? _config;
   WebSocketChannel? _channel;
   bool _connected = false;
+  bool _authenticated = false;
+  final Map<String, Completer<dynamic>> _pendingRequests = {};
 
-  bool get isConnected => _connected;
+  bool get isConnected => _connected && _authenticated;
 
   void setConfig(AppConfig config) {
     _config = config;
   }
 
+  String _generateId() => DateTime.now().microsecondsSinceEpoch.toString();
+
   Future<bool> testConnection() async {
     if (_config == null) return false;
 
     try {
+      disconnect();
+
       final uri = Uri.parse(_config!.gatewayUrl);
       final wsScheme = uri.scheme == 'https' ? 'wss' : 'ws';
-      final wsUri = uri.replace(scheme: wsScheme, path: 'ws');
+      var wsUri = uri.replace(scheme: wsScheme);
 
-      final wsUriWithHeaders = wsUri.replace(
-        queryParameters: {'authorization': 'Bearer ${_config!.token}'},
-      );
-      _channel = WebSocketChannel.connect(wsUriWithHeaders);
+      // Ensure path ends with / if empty
+      if (wsUri.path.isEmpty) {
+        wsUri = wsUri.replace(path: '/');
+      }
 
-      // WebSocketChannel.connect 会立即完成连接，只要DNS解析和TCP握手成功即可
-      // OpenClaw 服务器不会主动发送欢迎消息，所以不需要等待第一条消息
+      _channel = WebSocketChannel.connect(wsUri);
       _connected = true;
-      return true;
+      _authenticated = false;
+
+      // Wait for connect challenge and complete authentication
+      final completer = Completer<bool>();
+
+      _channel!.stream.listen(
+        (data) {
+          _handleMessage(data as String, completer);
+        },
+        onError: (error) {
+          _connected = false;
+          _authenticated = false;
+          if (!completer.isCompleted) {
+            completer.complete(false);
+          }
+        },
+        onDone: () {
+          _connected = false;
+          _authenticated = false;
+          if (!completer.isCompleted) {
+            completer.complete(false);
+          }
+        },
+      );
+
+      // Wait for authentication to complete with timeout
+      return await completer.future.timeout(
+        const Duration(seconds: 10),
+        onTimeout: () => false,
+      );
     } catch (e) {
       _connected = false;
+      _authenticated = false;
       return false;
     }
+  }
+
+  void _handleMessage(String raw, Completer<bool> authCompleter) {
+    final parsed = json.decode(raw);
+    final frame = parsed as Map<String, dynamic>;
+
+    if (frame['type'] == 'event') {
+      final event = frame['event'] as String?;
+      if (event == 'connect.challenge') {
+        _handleConnectChallenge();
+        return;
+      }
+      return;
+    }
+
+    if (frame['type'] == 'res') {
+      final id = frame['id'] as String;
+      final ok = frame['ok'] as bool;
+      final pending = _pendingRequests.remove(id);
+
+      if (id == 'connect-auth') {
+        if (ok) {
+          _authenticated = true;
+          if (!authCompleter.isCompleted) {
+            authCompleter.complete(true);
+          }
+        } else {
+          _authenticated = false;
+          _connected = false;
+          if (!authCompleter.isCompleted) {
+            authCompleter.complete(false);
+          }
+        }
+      }
+
+      if (pending != null) {
+        if (ok) {
+          pending.complete(frame['payload']);
+        } else {
+          pending.completeError(
+            Exception(frame['error']['message'] ?? 'Request failed'),
+          );
+        }
+      }
+      return;
+    }
+  }
+
+  void _handleConnectChallenge() {
+    if (_config == null) return;
+
+    // Build connect request according to OpenClaw protocol
+    final request = {
+      'type': 'req',
+      'id': 'connect-auth',
+      'method': 'connect',
+      'params': {
+        'minProtocol': 3,
+        'maxProtocol': 3,
+        'client': {
+          'id': 'claw-chat',
+          'version': '1.0.0',
+          'platform': 'flutter-mobile',
+          'mode': 'mobile',
+        },
+        'role': 'operator',
+        'scopes': [
+          'operator.admin',
+          'operator.read',
+          'operator.write',
+          'operator.approvals',
+          'operator.pairing',
+        ],
+        'caps': ['tool-events'],
+        'auth': {
+          'token': _config!.token,
+        },
+      },
+    };
+
+    _channel!.sink.add(json.encode(request));
   }
 
   void disconnect() {
     _channel?.sink.close();
     _connected = false;
+    _authenticated = false;
     _channel = null;
+    _pendingRequests.clear();
   }
 
   void sendMessage(
@@ -56,51 +174,63 @@ class OpenClawClient {
     required OnDoneCallback onDone,
     required OnErrorCallback onError,
   }) {
-    if (_channel == null || !_connected) {
+    if (_channel == null || !isConnected) {
       onError('Not connected');
       return;
     }
 
     final request = {
-      'type': 'chat',
+      'type': 'req',
       'id': message.id,
-      'sessionId': sessionId,
-      'content': message.content,
-      if (message.attachments != null)
-        'attachments': message.attachments!.map((a) => a.toJson()).toList(),
+      'method': 'chat.completion',
+      'params': {
+        'sessionId': sessionId,
+        'content': message.content,
+        if (message.attachments != null)
+          'attachments': message.attachments!.map((a) => a.toJson()).toList(),
+      },
     };
 
     _channel!.sink.add(json.encode(request));
 
-    // Listen for response
+    // Listen for response chunks via the stream
+    // Chunks come as events: { type: "event", event: "chat.stream", payload: ... }
     _channel!.stream.listen(
       (data) {
         final event = json.decode(data as String);
-        final type = event['type'] as String;
-        final messageId = event['id'] as String;
+        if (event['type'] != 'event') return;
 
-        if (messageId != message.id) return;
+        final eventName = event['event'] as String;
+        if (eventName != 'chat.stream') return;
 
-        switch (type) {
-          case 'chunk':
-            final chunk = event['chunk'] as String;
-            onChunk(chunk);
+        final payload = event['payload'] as Map<String, dynamic>;
+        if (payload['id'] != message.id) return;
+
+        switch (payload['state']) {
+          case 'delta':
+            final delta = payload['message'] as String;
+            onChunk(delta);
             break;
-          case 'done':
+          case 'final':
             onDone();
             break;
           case 'error':
-            final errorMsg = event['message'] as String;
+            final errorMsg = payload['errorMessage'] as String;
             onError(errorMsg);
+            break;
+          case 'aborted':
+            onError('Aborted');
             break;
         }
       },
       onError: (error) {
         onError(error.toString());
         _connected = false;
+        _authenticated = false;
       },
       onDone: () {
         _connected = false;
+        _authenticated = false;
       },
     );
   }
@@ -131,5 +261,25 @@ class OpenClawClient {
     } catch (e) {
       return null;
     }
+  }
+
+  Future<dynamic> request(String method, [Map<String, dynamic>? params]) {
+    if (!isConnected) {
+      return Future.error(Exception('Not connected'));
+    }
+
+    final id = _generateId();
+    final completer = Completer<dynamic>();
+    _pendingRequests[id] = completer;
+
+    final frame = {
+      'type': 'req',
+      'id': id,
+      'method': method,
+      'params': params,
+    };
+
+    _channel!.sink.add(json.encode(frame));
+    return completer.future;
   }
 }
