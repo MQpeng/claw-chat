@@ -78,5 +78,8 @@
   "notConnectedCannotCreateSession": "Not connected to OpenClaw Gateway. Cannot create new session.",
   "connect": "Connect",
   "logs": "Logs",
-  "notConnectedWillOpenOffline": "Not connected. Opening session in offline mode. Will auto-reconnect."
+  "notConnectedWillOpenOffline": "Not connected. Opening session in offline mode. Will auto-reconnect.",
+  "connectionError": "Connection Error",
+  "ok": "OK",
+  "reconnect": "Reconnect"
 }

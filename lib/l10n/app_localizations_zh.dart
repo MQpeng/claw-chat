@@ -229,4 +229,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get notConnectedWillOpenOffline => '未连接，将以离线模式打开会话，将自动重连。';
+
+  @override
+  String get ok => '确定';
+
+  @override
+  String get reconnect => '重连';
 }

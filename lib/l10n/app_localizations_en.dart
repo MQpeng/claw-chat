@@ -229,4 +229,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notConnectedWillOpenOffline => 'Not connected. Opening session in offline mode. Will auto-reconnect.';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get reconnect => 'Reconnect';
 }

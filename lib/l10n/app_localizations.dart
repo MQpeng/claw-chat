@@ -538,6 +538,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not connected. Opening session in offline mode. Will auto-reconnect.'**
   String get notConnectedWillOpenOffline;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @reconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect'**
+  String get reconnect;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
