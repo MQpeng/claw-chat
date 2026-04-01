@@ -17,6 +17,8 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
+  bool _didAutoCreate = false;
+  
   @override
   void initState() {
     super.initState();
@@ -40,8 +42,13 @@ class _HomePageState extends ConsumerState<HomePage> {
             hintText: l10n.enterSessionName,
           ),
           autofocus: true,
+          textInputAction: TextInputAction.done,
           onSubmitted: (value) {
-            Navigator.of(context).pop(value.trim());
+            if (value.trim().isNotEmpty) {
+              Navigator.of(context).pop(value.trim());
+            } else {
+              Navigator.of(context).pop();
+            }
           },
         ),
         actions: [
@@ -50,7 +57,10 @@ class _HomePageState extends ConsumerState<HomePage> {
             child:  Text(l10n.cancel),
           ),
           TextButton(
-            onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+            onPressed: () {
+              final text = controller.text.trim();
+              Navigator.of(context).pop(text.isEmpty ? null : text);
+            },
             child:  Text(l10n.create),
           ),
         ],
@@ -105,6 +115,10 @@ class _HomePageState extends ConsumerState<HomePage> {
             labelText: l10n.sessionName,
           ),
           autofocus: true,
+          textInputAction: TextInputAction.done,
+          onSubmitted: (value) {
+            Navigator.of(context).pop(value.trim());
+          },
         ),
         actions: [
           TextButton(
@@ -132,7 +146,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     final connection = ref.watch(connectionProvider);
 
     // Check if we have any sessions, if not create one automatically
-    if (sessions.isEmpty && connection.isConnected) {
+    if (sessions.isEmpty && connection.isConnected && !_didAutoCreate) {
+      _didAutoCreate = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _createNewSession();
       });
