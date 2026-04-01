@@ -75,5 +75,8 @@
   "chooseFromGallery": "Choose from Gallery",
   "chooseFile": "Choose File",
   "notConnectedCannotOpenSession": "Not connected to OpenClaw Gateway. Cannot open session.",
-  "notConnectedCannotCreateSession": "Not connected to OpenClaw Gateway. Cannot create new session."
+  "notConnectedCannotCreateSession": "Not connected to OpenClaw Gateway. Cannot create new session.",
+  "connect": "Connect",
+  "logs": "Logs",
+  "notConnectedWillOpenOffline": "Not connected. Opening session in offline mode. Will auto-reconnect."
 }

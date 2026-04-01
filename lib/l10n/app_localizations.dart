@@ -526,6 +526,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Not connected to OpenClaw Gateway. Cannot create new session.'**
   String get notConnectedCannotCreateSession;
+
+  /// No description provided for @logs.
+  ///
+  /// In en, this message translates to:
+  /// **'Logs'**
+  String get logs;
+
+  /// No description provided for @notConnectedWillOpenOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected. Opening session in offline mode. Will auto-reconnect.'**
+  String get notConnectedWillOpenOffline;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

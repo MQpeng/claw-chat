@@ -223,4 +223,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get notConnectedCannotCreateSession => '未连接到 OpenClaw Gateway，无法新建会话。';
+
+  @override
+  String get logs => '日志';
+
+  @override
+  String get notConnectedWillOpenOffline => '未连接，将以离线模式打开会话，将自动重连。';
 }

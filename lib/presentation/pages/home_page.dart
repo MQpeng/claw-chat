@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
+import '../../data/datasource/remote/openclaw_client.dart';
 import '../providers/session_provider.dart';
 import '../providers/connection_provider.dart';
 import '../../domain/entities/chat_session.dart';
 import 'session_search_delegate.dart';
 import 'settings_page.dart';
+import 'pairing_page.dart';
+import 'client_logs_page.dart';
 import 'chat_page.dart';
 import '../widgets/session_list_item.dart';
 
 enum HomeMenuItem {
+  connect(icon: Icons.link_outlined, label: 'Connect'),
   chat(icon: Icons.chat_bubble_outline, label: 'Chat'),
   voice(icon: Icons.mic_none, label: 'Voice'),
   screen(icon: Icons.desktop_windows_outlined, label: 'Screen'),
+  logs(icon: Icons.bug_report_outlined, label: 'Logs'),
   settings(icon: Icons.settings_outlined, label: 'Settings');
 
   const HomeMenuItem({required this.icon, required this.label});
@@ -30,7 +35,7 @@ class HomePage extends ConsumerStatefulWidget {
 class _HomePageState extends ConsumerState<HomePage> {
   bool _didAutoCreate = false;
   HomeMenuItem _selectedMenuItem = HomeMenuItem.chat;
-  
+
   @override
   void initState() {
     super.initState();
@@ -38,14 +43,14 @@ class _HomePageState extends ConsumerState<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await ref.read(connectionProvider.notifier).loadSavedConfig();
       // After connection, refresh sessions from gateway
-      if (ref.read(connectionProvider).isConnected) {
+      if (ref.watch(connectionProvider).isConnected) {
         await ref.read(sessionListProvider.notifier).refreshFromRemote();
       }
     });
   }
 
   Future<void> _createNewSession() async {
-    final connection = ref.read(connectionProvider);
+    final connection = ref.watch(connectionProvider);
     if (!connection.isConnected) {
       if (mounted) {
         final l10n = AppLocalizations.of(context)!;
@@ -125,7 +130,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
 
     if (confirm == true) {
-      final currentId = ref.read(currentSessionIdProvider);
+      final currentId = ref.watch(currentSessionIdProvider);
       if (currentId == session.id) {
         ref.read(currentSessionIdProvider.notifier).state = null;
       }
@@ -311,8 +316,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                   Container(
                     width: 8,
                     height: 8,
-                    decoration: BoxDecoration(
-                      color: statusColor,
+                    decoration: const BoxDecoration(
+                      color: Colors.green,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -346,7 +351,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 );
                 if (selected != null && context.mounted) {
                   ref.read(currentSessionIdProvider.notifier).state = selected.id;
-                  if (!ref.read(connectionProvider).isConnected) {
+                  if (!ref.watch(connectionProvider).isConnected) {
                     ref.read(connectionProvider.notifier).connect();
                   }
                 }
@@ -398,12 +403,16 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   String _getMenuItemLabel(HomeMenuItem item, AppLocalizations l10n) {
     switch (item) {
+      case HomeMenuItem.connect:
+        return l10n.connect;
       case HomeMenuItem.chat:
         return l10n.chat;
       case HomeMenuItem.voice:
         return l10n.voice;
       case HomeMenuItem.screen:
         return l10n.screen;
+      case HomeMenuItem.logs:
+        return l10n.logs;
       case HomeMenuItem.settings:
         return l10n.settings;
     }
@@ -417,6 +426,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     bool isTablet,
   ) {
     switch (selected) {
+      case HomeMenuItem.connect:
+        return const PairingPage();
       case HomeMenuItem.chat:
         if (currentSessionId == null) {
           return _buildSessionList(context, sessions, currentSessionId);
@@ -440,6 +451,8 @@ class _HomePageState extends ConsumerState<HomePage> {
         return const Center(
           child: Text('Screen coming soon...'),
         );
+      case HomeMenuItem.logs:
+        return const ClientLogsPage();
       case HomeMenuItem.settings:
         return const SettingsPage();
     }
@@ -475,19 +488,19 @@ class _HomePageState extends ConsumerState<HomePage> {
           session: session,
           isSelected: session.id == currentSessionId,
           onTap: () {
-            final connection = ref.read(connectionProvider);
+            // Allow opening session even when disconnected (read offline)
+            ref.read(currentSessionIdProvider.notifier).state = session.id;
+            // Try connect if not connected, but still open session
+            final connection = ref.watch(connectionProvider);
             if (!connection.isConnected) {
-              // Not connected, show error and trigger connection
               ScaffoldMessenger.of(context).showSnackBar(
                  SnackBar(
-                  content: Text(AppLocalizations.of(context)!.notConnectedCannotOpenSession),
-                  backgroundColor: Colors.red,
+                  content: Text(AppLocalizations.of(context)!.notConnectedWillOpenOffline),
+                  backgroundColor: Colors.orange,
                 ),
               );
               ref.read(connectionProvider.notifier).connect();
-              return;
             }
-            ref.read(currentSessionIdProvider.notifier).state = session.id;
             // Close drawer on mobile
             if (!MediaQuery.of(context).size.width.isFinite ||
                 MediaQuery.of(context).size.width < 600) {

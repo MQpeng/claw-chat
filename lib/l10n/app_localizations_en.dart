@@ -223,4 +223,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notConnectedCannotCreateSession => 'Not connected to OpenClaw Gateway. Cannot create new session.';
+
+  @override
+  String get logs => 'Logs';
+
+  @override
+  String get notConnectedWillOpenOffline => 'Not connected. Opening session in offline mode. Will auto-reconnect.';
 }
