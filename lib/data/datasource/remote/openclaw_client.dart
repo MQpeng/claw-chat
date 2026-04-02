@@ -127,6 +127,8 @@ class OpenClawClient {
       final privateKeyBytes = base64.decode(savedKeyPair);
       _deviceKeyPair = await Ed25519().newKeyPairFromSeed(privateKeyBytes);
       _deviceId = savedDeviceId;
+
+      debugPrint('✅ Restored existing device identity from storage: deviceId = $_deviceId');
       return;
     }
 
@@ -139,10 +141,10 @@ class OpenClawClient {
       deviceUniqueId = androidInfo.id ?? '';
     }
 
-    // Generate seed: HMAC(deviceUniqueId, app-specific-salt)
+    // Generate seed: SHA256(app-specific-salt + device-unique-id)
     // This ensures same device gets same seed even after reinstall
     final appSalt = utf8.encode('claw-chat-openclaw-control-ui');
-    final List<int> seedInput = List<int>.from(appSalt);
+    List<int> seedInput = List.from(appSalt);
     if (deviceUniqueId.isNotEmpty) {
       seedInput.addAll(utf8.encode(deviceUniqueId));
     }
@@ -152,12 +154,16 @@ class OpenClawClient {
     final algorithm = Ed25519();
     _deviceKeyPair = await algorithm.newKeyPairFromSeed(seed.bytes);
     final keyPairData = await _deviceKeyPair!.extract();
-    final secretKey = seed.bytes; // we already have it as seed
+    final secretKey = seed.bytes; // we already have the seed as secret
     final publicKey = keyPairData.publicKey;
 
     // Generate device ID from public key fingerprint (sha256)
+    // According to OpenClaw protocol: device.id = sha256(publicKey.bytes)
     final hash = await Sha256().hash(publicKey.bytes);
     _deviceId = hex.encode(hash.bytes);
+
+    debugPrint('🆕 Generated new device identity: deviceId = $_deviceId');
+    debugPrint('   publicKey bytes length = ${publicKey.bytes.length}');
 
     // Save to shared_preferences
     await prefs.setString('${storageKey}_privateKey', base64.encode(secretKey));
@@ -250,6 +256,7 @@ class OpenClawClient {
           },
         };
 
+        debugPrint('📤 Sent connect request: deviceId = $_deviceId');
         _channel!.sink.add(json.encode(request));
         return;
       }
@@ -273,6 +280,7 @@ class OpenClawClient {
           final errorMsg = frame['error'] != null
               ? frame['error']['message'] ?? 'Authentication failed'
               : 'Authentication failed';
+          debugPrint('❌ Authentication failed: $errorMsg');
           if (!authCompleter.isCompleted) {
             authCompleter.complete(ConnectionResult(false, errorMsg));
           }
