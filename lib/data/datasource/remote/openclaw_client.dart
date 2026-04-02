@@ -142,7 +142,7 @@ class OpenClawClient {
     // Generate seed: HMAC(deviceUniqueId, app-specific-salt)
     // This ensures same device gets same seed even after reinstall
     final appSalt = utf8.encode('claw-chat-openclaw-control-ui');
-    List<int> seedInput = appSalt;
+    final List<int> seedInput = List<int>.from(appSalt);
     if (deviceUniqueId.isNotEmpty) {
       seedInput.addAll(utf8.encode(deviceUniqueId));
     }
