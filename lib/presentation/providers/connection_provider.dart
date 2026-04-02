@@ -66,7 +66,10 @@ class ConnectionNotifier extends Notifier<ConnectionState> {
       try {
         final config = AppConfig.fromJson(json.decode(configJson));
         _client.setConfig(config);
-        state = state.copyWith(config: config);
+        state = state.copyWith(
+          config: config,
+          status: ConnectionStatus.disconnected,
+        );
         await connect();
       } catch (e) {
         state = state.copyWith(
@@ -74,6 +77,11 @@ class ConnectionNotifier extends Notifier<ConnectionState> {
           errorMessage: 'Invalid saved configuration',
         );
       }
+    } else {
+      // No config saved, stay disconnected
+      state = state.copyWith(
+        status: ConnectionStatus.disconnected,
+      );
     }
   }
 
