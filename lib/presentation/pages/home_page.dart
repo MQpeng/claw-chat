@@ -41,11 +41,11 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
     // Initialize Hive and connect - only once in initState
+    // loadSavedConfig is now done in ConnectionNotifier.build() automatically
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (_didInit) return;
       _didInit = true;
-      await ref.read(connectionProvider.notifier).loadSavedConfig();
-      // After connection, refresh sessions from gateway
+      // After connection, refresh sessions from gateway if already connected
       if (ref.watch(connectionProvider).isConnected) {
         await ref.read(sessionListProvider.notifier).refreshFromRemote();
       }
