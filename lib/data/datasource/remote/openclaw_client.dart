@@ -148,10 +148,10 @@ class OpenClawClient {
         'minProtocol': 3,
         'maxProtocol': 3,
         'client': {
-          'id': 'claw-chat',
+          'id': 'openclaw-control-ui',
           'version': '1.0.0',
           'platform': 'flutter-mobile',
-          'mode': 'mobile',
+          'mode': 'ui',
         },
         'role': 'operator',
         'scopes': [
