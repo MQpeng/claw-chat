@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:dio/dio.dart';
+import 'package:cryptography/cryptography.dart';
+import 'package:convert/convert.dart';
 import '../../../core/constants/app_config.dart';
 import '../../../domain/entities/chat_message.dart';
 import '../../../domain/entities/file_item.dart';
@@ -25,6 +27,10 @@ class OpenClawClient {
   bool _connected = false;
   bool _authenticated = false;
   final Map<String, Completer<dynamic>> _pendingRequests = {};
+
+  // Device identity - Ed25519 key pair stored locally
+  SimpleKeyPair? _deviceKeyPair;
+  String? _deviceId; // fingerprint = sha256(publicKey)
 
   bool get isConnected => _connected && _authenticated;
 
@@ -65,6 +71,9 @@ class OpenClawClient {
       _connected = true;
       _authenticated = false;
 
+      // Generate device key pair if not exists
+      await _loadOrGenerateDeviceKey();
+
       // Wait for connect challenge and complete authentication
       final completer = Completer<ConnectionResult>();
 
@@ -101,14 +110,107 @@ class OpenClawClient {
     }
   }
 
-  void _handleMessage(String raw, Completer<ConnectionResult> authCompleter) {
+  Future<void> _loadOrGenerateDeviceKey() async {
+    // TODO: Store the key pair securely in Flutter secure storage
+    // For now, generate on each connect - in production should persist
+    if (_deviceKeyPair != null) return;
+
+    final algorithm = Ed25519();
+    _deviceKeyPair = await algorithm.newKeyPair();
+    final publicKey = await _deviceKeyPair!.extractPublicKey();
+
+    // Generate device ID from public key fingerprint (sha256)
+    final hash = await Sha256().hash(publicKey.bytes);
+    _deviceId = hex.encode(hash.bytes);
+  }
+
+  Future<String> _signChallenge(String nonce, int timestamp) async {
+    // Sign the challenge according to OpenClaw protocol v3
+    // Signed payload includes: deviceId, clientId, clientMode, role, scopes, token, nonce, signedAt
+    final payload = json.encode({
+      'deviceId': _deviceId,
+      'client': {
+        'id': 'openclaw-control-ui',
+        'version': '1.0.0',
+        'platform': 'flutter-mobile',
+        'mode': 'ui',
+      },
+      'role': 'operator',
+      'scopes': [
+        'operator.admin',
+        'operator.read',
+        'operator.write',
+        'operator.approvals',
+        'operator.pairing',
+      ],
+      'token': _config!.token,
+      'nonce': nonce,
+      'signedAt': timestamp,
+    });
+
+    final algorithm = Ed25519();
+    final signature = await algorithm.sign(
+      utf8.encode(payload),
+      keyPair: _deviceKeyPair!,
+    );
+    return base64.encode(signature.bytes);
+  }
+
+  void _handleMessage(String raw, Completer<ConnectionResult> authCompleter) async {
     final parsed = json.decode(raw);
     final frame = parsed as Map<String, dynamic>;
 
     if (frame['type'] == 'event') {
       final event = frame['event'] as String?;
       if (event == 'connect.challenge') {
-        _handleConnectChallenge();
+        final payload = frame['payload'] as Map<String, dynamic>;
+        final nonce = payload['nonce'] as String;
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final signature = await _signChallenge(nonce, timestamp);
+
+        // Get public key bytes
+        final publicKey = await _deviceKeyPair!.extractPublicKey();
+
+        // Build connect request according to OpenClaw protocol
+        // This is Control UI (mobile app), so role: operator, client.mode: ui
+        final request = {
+          'type': 'req',
+          'id': 'connect-auth',
+          'method': 'connect',
+          'params': {
+            'minProtocol': 3,
+            'maxProtocol': 3,
+            'client': {
+              'id': 'openclaw-control-ui',
+              'version': '1.0.0',
+              'platform': 'flutter-mobile',
+              'mode': 'ui',
+            },
+            'role': 'operator',
+            'scopes': [
+              'operator.admin',
+              'operator.read',
+              'operator.write',
+              'operator.approvals',
+              'operator.pairing',
+            ],
+            'caps': ['tool-events', 'camera'],
+            'auth': {
+              'token': _config!.token,
+            },
+            'locale': Platform.localeName,
+            'userAgent': 'claw-chat/1.0.0',
+            'device': {
+              'id': _deviceId,
+              'publicKey': hex.encode(publicKey.bytes),
+              'signature': signature,
+              'signedAt': timestamp,
+              'nonce': nonce,
+            },
+          },
+        };
+
+        _channel!.sink.add(json.encode(request));
         return;
       }
       return;
@@ -128,7 +230,7 @@ class OpenClawClient {
         } else {
           _authenticated = false;
           _connected = false;
-          final errorMsg = frame['error'] != null 
+          final errorMsg = frame['error'] != null
               ? frame['error']['message'] ?? 'Authentication failed'
               : 'Authentication failed';
           if (!authCompleter.isCompleted) {
@@ -148,41 +250,6 @@ class OpenClawClient {
       }
       return;
     }
-  }
-
-  void _handleConnectChallenge() {
-    if (_config == null) return;
-
-    // Build connect request according to OpenClaw protocol
-    final request = {
-      'type': 'req',
-      'id': 'connect-auth',
-      'method': 'connect',
-      'params': {
-        'minProtocol': 3,
-        'maxProtocol': 3,
-        'client': {
-          'id': 'openclaw-control-ui',
-          'version': '1.0.0',
-          'platform': 'flutter-mobile',
-          'mode': 'ui',
-        },
-        'role': 'operator',
-        'scopes': [
-          'operator.admin',
-          'operator.read',
-          'operator.write',
-          'operator.approvals',
-          'operator.pairing',
-        ],
-        'caps': ['tool-events', 'camera'],
-        'auth': {
-          'token': _config!.token,
-        },
-      },
-    };
-
-    _channel!.sink.add(json.encode(request));
   }
 
   void disconnect() {
