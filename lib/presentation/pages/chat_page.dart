@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import '../../../core/constants/app_config.dart';
 import '../../../domain/entities/chat_message.dart';
 import '../../../domain/entities/message_role.dart';
 import '../../../domain/entities/message_status.dart';
@@ -22,11 +23,80 @@ class ChatPage extends ConsumerStatefulWidget {
 class _ChatPageState extends ConsumerState<ChatPage> {
   final ScrollController _scrollController = ScrollController();
   bool _showScrollToBottom = false;
+  String? _currentStreamingMessageId;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScrollChanged);
+    // Setup main stream listener for chat.stream events after connection
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final connection = ref.read(connectionProvider);
+      if (connection.isConnected) {
+        _setupStreamListener(connection.config!);
+      }
+    });
+  }
+
+  void _setupStreamListener(AppConfig config) {
+    final client = ref.read(connectionProvider.notifier).client;
+    client.setupMainStreamListener(
+      onStreamEvent: (chunk, messageId, state) {
+        if (state == 'delta') {
+          if (_currentStreamingMessageId == messageId) {
+            ref
+                .read(chatMessagesProvider.notifier)
+                .appendToMessage(messageId, chunk);
+            _scrollToBottom();
+          }
+        } else if (state == 'final') {
+          if (_currentStreamingMessageId == messageId) {
+            ref
+                .read(chatMessagesProvider.notifier)
+                .updateMessageStatus(messageId, MessageStatus.sent);
+            _currentStreamingMessageId = null;
+          }
+        } else if (state == 'error') {
+          if (_currentStreamingMessageId == messageId) {
+            ref
+                .read(chatMessagesProvider.notifier)
+                .updateMessageStatus(messageId, MessageStatus.error);
+            _currentStreamingMessageId = null;
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Streaming error')),
+              );
+            }
+          }
+        } else if (state == 'aborted') {
+          if (_currentStreamingMessageId == messageId) {
+            ref
+                .read(chatMessagesProvider.notifier)
+                .updateMessageStatus(messageId, MessageStatus.error);
+            _currentStreamingMessageId = null;
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Response aborted')),
+              );
+            }
+          }
+        }
+      },
+      onStreamError: (error) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Stream error: $error')),
+          );
+        }
+      },
+      onStreamDone: () {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Connection closed')),
+          );
+        }
+      },
+    );
   }
 
   @override
@@ -232,26 +302,19 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     );
 
     await ref.read(chatMessagesProvider.notifier).saveMessage(assistantMessage);
+    _currentStreamingMessageId = assistantMessage.id;
     _scrollToBottom();
 
     client.sendMessage(
       currentSessionId,
       message,
-      onChunk: (chunk) {
-        ref
-            .read(chatMessagesProvider.notifier)
-            .appendToMessage(assistantMessage.id, chunk);
-        _scrollToBottom();
-      },
-      onDone: () {
-        ref
-            .read(chatMessagesProvider.notifier)
-            .updateMessageStatus(assistantMessage.id, MessageStatus.sent);
-      },
+      onChunk: (_) {},
+      onDone: () {},
       onError: (error) {
         ref
             .read(chatMessagesProvider.notifier)
             .updateMessageStatus(assistantMessage.id, MessageStatus.error);
+        _currentStreamingMessageId = null;
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Error: $error')),

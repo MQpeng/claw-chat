@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:dio/dio.dart';
 import '../../../core/constants/app_config.dart';
@@ -193,45 +194,44 @@ class OpenClawClient {
     };
 
     _channel!.sink.add(json.encode(request));
+  }
 
-    // Listen for response chunks via the stream
-    // Chunks come as events: { type: "event", event: "chat.stream", payload: ... }
+  // Call this once after connecting to setup the main stream listener
+  void setupMainStreamListener({
+    required Function(String chunk, String messageId, String state) onStreamEvent,
+    required Function(String error) onStreamError,
+    required VoidCallback onStreamDone,
+  }) {
     _channel!.stream.listen(
       (data) {
         final event = json.decode(data as String);
-        if (event['type'] != 'event') return;
+        if (event['type'] != 'event') {
+          // Handle request responses in _handleMessage
+          return;
+        }
 
         final eventName = event['event'] as String;
-        if (eventName != 'chat.stream') return;
-
-        final payload = event['payload'] as Map<String, dynamic>;
-        if (payload['id'] != message.id) return;
-
-        switch (payload['state']) {
-          case 'delta':
+        if (eventName == 'chat.stream') {
+          final payload = event['payload'] as Map<String, dynamic>;
+          final id = payload['id'] as String;
+          final state = payload['state'] as String;
+          if (state == 'delta') {
             final delta = payload['message'] as String;
-            onChunk(delta);
-            break;
-          case 'final':
-            onDone();
-            break;
-          case 'error':
-            final errorMsg = payload['errorMessage'] as String;
-            onError(errorMsg);
-            break;
-          case 'aborted':
-            onError('Aborted');
-            break;
+            onStreamEvent(delta, id, state);
+          } else {
+            onStreamEvent('', id, state);
+          }
         }
       },
       onError: (error) {
-        onError(error.toString());
+        onStreamError(error.toString());
         _connected = false;
         _authenticated = false;
       },
       onDone: () {
         _connected = false;
         _authenticated = false;
+        onStreamDone();
       },
     );
   }
