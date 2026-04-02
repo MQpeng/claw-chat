@@ -81,5 +81,6 @@
   "notConnectedWillOpenOffline": "Not connected. Opening session in offline mode. Will auto-reconnect.",
   "connectionError": "Connection Error",
   "ok": "OK",
-  "reconnect": "Reconnect"
+  "reconnect": "Reconnect",
+  "loading": "Loading"
 }

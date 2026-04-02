@@ -7,6 +7,7 @@ import '../../../data/datasource/remote/openclaw_client.dart';
 final connectionProvider = NotifierProvider<ConnectionNotifier, ConnectionState>(ConnectionNotifier.new);
 
 enum ConnectionStatus {
+  loading,
   disconnected,
   connecting,
   connected,
@@ -44,8 +45,9 @@ class ConnectionNotifier extends Notifier<ConnectionState> {
 
   @override
   ConnectionState build() {
+    // Start with loading state while loading saved config
     return ConnectionState(
-      status: ConnectionStatus.disconnected,
+      status: ConnectionStatus.loading,
     );
   }
 

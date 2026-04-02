@@ -39,7 +39,9 @@ class ClawChatApp extends ConsumerWidget {
       theme: lightTheme(themeColor),
       darkTheme: darkTheme(themeColor),
       themeMode: themeMode,
-      home: connection.config == null ? const PairingPage() : const HomePage(),
+      home: connection.status == ConnectionStatus.loading
+          ? const Scaffold(body: Center(child: CircularProgressIndicator()))
+          : (connection.config == null ? const PairingPage() : const HomePage()),
     );
   }
 }

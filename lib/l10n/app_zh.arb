@@ -81,5 +81,6 @@
   "notConnectedWillOpenOffline": "未连接，将以离线模式打开会话，将自动重连。",
   "connectionError": "连接错误",
   "ok": "确定",
-  "reconnect": "重连"
+  "reconnect": "重连",
+  "loading": "加载中"
 }

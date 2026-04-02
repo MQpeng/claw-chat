@@ -395,15 +395,18 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   (Color, String) _getStatusInfo(BuildContext context, ConnectionStatus status) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     switch (status) {
+      case ConnectionStatus.loading:
+        return (Colors.blue, l10n.loading);
       case ConnectionStatus.disconnected:
-        return (Colors.grey[600]!, AppLocalizations.of(context)!.disconnected);
+        return (Colors.grey[600]!, l10n.disconnected);
       case ConnectionStatus.connecting:
-        return (Colors.orange, AppLocalizations.of(context)!.connecting);
+        return (Colors.orange, l10n.connecting);
       case ConnectionStatus.connected:
-        return (Colors.green, AppLocalizations.of(context)!.connected);
+        return (Colors.green, l10n.connected);
       case ConnectionStatus.error:
-        return (Colors.red, AppLocalizations.of(context)!.connectionError);
+        return (Colors.red, l10n.connectionError);
     }
   }
 
