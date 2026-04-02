@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:web_socket_channel/io.dart';
 import 'package:dio/dio.dart';
 import '../../../core/constants/app_config.dart';
 import '../../../domain/entities/chat_message.dart';
@@ -47,7 +49,19 @@ class OpenClawClient {
         wsUri = wsUri.replace(path: '/');
       }
 
-      _channel = WebSocketChannel.connect(wsUri);
+      // Set Origin header to match the gateway host
+      // OpenClaw Gateway requires origin to be from the allowed host
+      final httpUri = uri.replace(scheme: uri.scheme == 'wss' ? 'https' : 'http');
+      final origin = httpUri.toString();
+
+      // Use IOWebSocketChannel to support custom headers
+      final socket = await WebSocket.connect(
+        wsUri.toString(),
+        headers: {
+          'Origin': origin,
+        },
+      );
+      _channel = IOWebSocketChannel(socket);
       _connected = true;
       _authenticated = false;
 
