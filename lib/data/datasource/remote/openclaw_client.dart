@@ -11,6 +11,12 @@ typedef OnChunkCallback = void Function(String chunk);
 typedef OnDoneCallback = void Function();
 typedef OnErrorCallback = void Function(String error);
 
+class ConnectionResult {
+  final bool success;
+  final String? error;
+  ConnectionResult(this.success, this.error);
+}
+
 class OpenClawClient {
   AppConfig? _config;
   WebSocketChannel? _channel;
@@ -26,8 +32,8 @@ class OpenClawClient {
 
   String _generateId() => DateTime.now().microsecondsSinceEpoch.toString();
 
-  Future<bool> testConnection() async {
-    if (_config == null) return false;
+  Future<ConnectionResult> testConnection() async {
+    if (_config == null) return ConnectionResult(false, 'No configuration');
 
     try {
       disconnect();
@@ -46,7 +52,7 @@ class OpenClawClient {
       _authenticated = false;
 
       // Wait for connect challenge and complete authentication
-      final completer = Completer<bool>();
+      final completer = Completer<ConnectionResult>();
 
       _channel!.stream.listen(
         (data) {
@@ -56,31 +62,32 @@ class OpenClawClient {
           _connected = false;
           _authenticated = false;
           if (!completer.isCompleted) {
-            completer.complete(false);
+            completer.complete(ConnectionResult(false, error.toString()));
           }
         },
         onDone: () {
           _connected = false;
           _authenticated = false;
           if (!completer.isCompleted) {
-            completer.complete(false);
+            completer.complete(ConnectionResult(false, 'Connection closed by server'));
           }
         },
       );
 
       // Wait for authentication to complete with timeout
-      return await completer.future.timeout(
+      final result = await completer.future.timeout(
         const Duration(seconds: 10),
-        onTimeout: () => false,
+        onTimeout: () => ConnectionResult(false, 'Connection timeout after 10 seconds'),
       );
+      return result;
     } catch (e) {
       _connected = false;
       _authenticated = false;
-      return false;
+      return ConnectionResult(false, e.toString());
     }
   }
 
-  void _handleMessage(String raw, Completer<bool> authCompleter) {
+  void _handleMessage(String raw, Completer<ConnectionResult> authCompleter) {
     final parsed = json.decode(raw);
     final frame = parsed as Map<String, dynamic>;
 
@@ -102,13 +109,16 @@ class OpenClawClient {
         if (ok) {
           _authenticated = true;
           if (!authCompleter.isCompleted) {
-            authCompleter.complete(true);
+            authCompleter.complete(ConnectionResult(true, null));
           }
         } else {
           _authenticated = false;
           _connected = false;
+          final errorMsg = frame['error'] != null 
+              ? frame['error']['message'] ?? 'Authentication failed'
+              : 'Authentication failed';
           if (!authCompleter.isCompleted) {
-            authCompleter.complete(false);
+            authCompleter.complete(ConnectionResult(false, errorMsg));
           }
         }
       }

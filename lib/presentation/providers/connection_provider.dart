@@ -88,14 +88,14 @@ class ConnectionNotifier extends Notifier<ConnectionState> {
     _client.setConfig(state.config!);
 
     try {
-      final success = await _client.testConnection();
-      if (success) {
+      final result = await _client.testConnection();
+      if (result.success) {
         state = state.copyWith(status: ConnectionStatus.connected);
         return true;
       } else {
         state = state.copyWith(
           status: ConnectionStatus.error,
-          errorMessage: 'Connection failed',
+          errorMessage: result.error ?? 'Connection failed',
         );
         return false;
       }
