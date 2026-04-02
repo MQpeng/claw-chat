@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:dio/dio.dart';
@@ -71,7 +72,7 @@ class OpenClawClient {
       _connected = true;
       _authenticated = false;
 
-      // Generate device key pair if not exists
+      // Load or generate device key pair (persisted to local storage)
       await _loadOrGenerateDeviceKey();
 
       // Wait for connect challenge and complete authentication
@@ -111,17 +112,37 @@ class OpenClawClient {
   }
 
   Future<void> _loadOrGenerateDeviceKey() async {
-    // TODO: Store the key pair securely in Flutter secure storage
-    // For now, generate on each connect - in production should persist
+    // Load existing key from shared_preferences or generate new
     if (_deviceKeyPair != null) return;
 
+    // Try load from storage
+    const storageKey = 'openclaw_device_identity';
+    final prefs = await SharedPreferences.getInstance();
+    final savedKeyPair = prefs.getString('${storageKey}_privateKey');
+    final savedDeviceId = prefs.getString('${storageKey}_deviceId');
+
+    if (savedKeyPair != null && savedDeviceId != null) {
+      // Restore existing key pair
+      final privateKeyBytes = base64.decode(savedKeyPair);
+      _deviceKeyPair = await Ed25519().newKeyPairFromSeed(privateKeyBytes);
+      _deviceId = savedDeviceId;
+      return;
+    }
+
+    // Generate new key pair
     final algorithm = Ed25519();
     _deviceKeyPair = await algorithm.newKeyPair();
-    final publicKey = await _deviceKeyPair!.extractPublicKey();
+    final keyPairData = await _deviceKeyPair!.extract();
+    final secretKey = keyPairData.bytes;
+    final publicKey = keyPairData.publicKey;
 
     // Generate device ID from public key fingerprint (sha256)
     final hash = await Sha256().hash(publicKey.bytes);
     _deviceId = hex.encode(hash.bytes);
+
+    // Save to shared_preferences
+    await prefs.setString('${storageKey}_privateKey', base64.encode(secretKey));
+    await prefs.setString('${storageKey}_deviceId', _deviceId!);
   }
 
   Future<String> _signChallenge(String nonce, int timestamp) async {
