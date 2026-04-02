@@ -9,6 +9,7 @@ import 'package:web_socket_channel/io.dart';
 import 'package:dio/dio.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:convert/convert.dart';
+import 'package:base58check/base58check.dart' show base58;
 import '../../../core/constants/app_config.dart';
 import '../../../domain/entities/chat_message.dart';
 import '../../../domain/entities/file_item.dart';
@@ -64,12 +65,12 @@ class OpenClawClient {
 
       // Use IOWebSocketChannel to support custom headers
       final socket = await WebSocket.connect(
-        wsUri.toString(),
+        wsUri,
         headers: {
           'Origin': origin,
         },
       );
-      _channel = IOWebSocketChannel(socket);
+      _channel = IOWebSocketChannel(socket: socket);
       _connected = true;
       _authenticated = false;
 
@@ -202,7 +203,10 @@ class OpenClawClient {
     return base64.encode(signature.bytes);
   }
 
-  void _handleMessage(String raw, Completer<ConnectionResult> authCompleter) async {
+  void _handleMessage(
+    String raw,
+    Completer<ConnectionResult> authCompleter,
+  ) async {
     final parsed = json.decode(raw);
     final frame = parsed as Map<String, dynamic>;
 
@@ -248,7 +252,7 @@ class OpenClawClient {
             'userAgent': 'claw-chat/1.0.0',
             'device': {
               'id': _deviceId,
-              'publicKey': hex.encode(publicKey.bytes),
+              'publicKey': base58.encode(publicKey.bytes),
               'signature': signature,
               'signedAt': timestamp,
               'nonce': nonce,
