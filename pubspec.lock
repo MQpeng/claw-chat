@@ -81,6 +81,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.2.4"
+  base58check:
+    dependency: "direct main"
+    description:
+      name: base58check
+      sha256: "6c300dfc33e598d2fe26319e13f6243fea81eaf8204cb4c6b69ef20a625319a5"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "2.0.0"
   boolean_selector:
     dependency: transitive
     description:

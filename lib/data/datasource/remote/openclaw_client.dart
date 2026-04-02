@@ -9,10 +9,44 @@ import 'package:web_socket_channel/io.dart';
 import 'package:dio/dio.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:convert/convert.dart';
-import 'package:base58check/base58check.dart' show base58;
 import '../../../core/constants/app_config.dart';
 import '../../../domain/entities/chat_message.dart';
 import '../../../domain/entities/file_item.dart';
+
+// Simple base58 encoder (same alphabet as bitcoin/base58)
+// We only need encoding, not decoding, so keep it simple
+const String _base58Alphabet =
+    '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrmnpqrstuvwxyz';
+
+String base58Encode(List<int> bytes) {
+  if (bytes.isEmpty) return '';
+
+  // Count leading zeros
+  int zeros = 0;
+  while (zeros < bytes.length && bytes[zeros] == 0) {
+    zeros++;
+  }
+
+  // Convert bytes to big integer
+  BigInt number = BigInt.zero;
+  for (int i = zeros; i < bytes.length; i++) {
+    number = number * BigInt.from(256) + BigInt.from(bytes[i]);
+  }
+
+  final buffer = StringBuffer();
+  while (number > BigInt.zero) {
+    final remainder = number % BigInt.from(58);
+    number = number ~/ BigInt.from(58);
+    buffer.write(_base58Alphabet[remainder.toInt()]);
+  }
+
+  // Add leading 1 for zero bytes
+  final result = String.fromCharCodes(
+    Iterable.generate(zeros, (_) => _base58Alphabet.codeUnitAt(0))
+  ) + buffer.toString().split('').reversed.join('');
+
+  return result;
+}
 
 typedef OnChunkCallback = void Function(String chunk);
 typedef OnDoneCallback = void Function();
@@ -65,12 +99,12 @@ class OpenClawClient {
 
       // Use IOWebSocketChannel to support custom headers
       final socket = await WebSocket.connect(
-        wsUri,
+        wsUri.toString(),
         headers: {
           'Origin': origin,
         },
       );
-      _channel = IOWebSocketChannel(socket: socket);
+      _channel = IOWebSocketChannel(socket);
       _connected = true;
       _authenticated = false;
 
@@ -252,7 +286,7 @@ class OpenClawClient {
             'userAgent': 'claw-chat/1.0.0',
             'device': {
               'id': _deviceId,
-              'publicKey': base58.encode(publicKey.bytes),
+              'publicKey': base58Encode(publicKey.bytes),
               'signature': signature,
               'signedAt': timestamp,
               'nonce': nonce,
