@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
@@ -129,11 +130,29 @@ class OpenClawClient {
       return;
     }
 
-    // Generate new key pair
+    // Get device unique identifier (Android ID)
+    // This stays the same across reinstalls unless device is factory reset
+    String deviceUniqueId = '';
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      final deviceInfo = DeviceInfoPlugin();
+      final androidInfo = await deviceInfo.androidInfo;
+      deviceUniqueId = androidInfo.id ?? '';
+    }
+
+    // Generate seed: HMAC(deviceUniqueId, app-specific-salt)
+    // This ensures same device gets same seed even after reinstall
+    final appSalt = utf8.encode('claw-chat-openclaw-control-ui');
+    List<int> seedInput = appSalt;
+    if (deviceUniqueId.isNotEmpty) {
+      seedInput.addAll(utf8.encode(deviceUniqueId));
+    }
+    final seed = await Sha256().hash(seedInput);
+
+    // Generate key pair from deterministic seed
     final algorithm = Ed25519();
-    _deviceKeyPair = await algorithm.newKeyPair();
+    _deviceKeyPair = await algorithm.newKeyPairFromSeed(seed.bytes);
     final keyPairData = await _deviceKeyPair!.extract();
-    final secretKey = keyPairData.bytes;
+    final secretKey = seed.bytes; // we already have it as seed
     final publicKey = keyPairData.publicKey;
 
     // Generate device ID from public key fingerprint (sha256)
