@@ -42,6 +42,8 @@ class ClawChatApp extends ConsumerWidget {
       home: connection.status == ConnectionStatus.loading
           ? const Scaffold(body: Center(child: CircularProgressIndicator()))
           : (connection.config == null ? const PairingPage() : const HomePage()),
+      // Rule: If config exists, always go to HomePage regardless of connection status
+      // Only go to PairingPage when no config exists or user clicks Connect menu item
     );
   }
 }
