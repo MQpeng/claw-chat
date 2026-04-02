@@ -34,13 +34,16 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   bool _didAutoCreate = false;
+  bool _didInit = false;
   HomeMenuItem _selectedMenuItem = HomeMenuItem.chat;
 
   @override
   void initState() {
     super.initState();
-    // Initialize Hive and connect
+    // Initialize Hive and connect - only once in initState
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (_didInit) return;
+      _didInit = true;
       await ref.read(connectionProvider.notifier).loadSavedConfig();
       // After connection, refresh sessions from gateway
       if (ref.watch(connectionProvider).isConnected) {
