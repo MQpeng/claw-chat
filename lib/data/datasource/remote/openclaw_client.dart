@@ -9,43 +9,15 @@ import 'package:web_socket_channel/io.dart';
 import 'package:dio/dio.dart';
 import 'package:cryptography/cryptography.dart';
 import 'package:convert/convert.dart';
+import 'package:bs58/bs58.dart';
 import '../../../core/constants/app_config.dart';
 import '../../../domain/entities/chat_message.dart';
 import '../../../domain/entities/file_item.dart';
 
-// Simple base58 encoder (same alphabet as bitcoin/base58)
-// We only need encoding, not decoding, so keep it simple
-const String _base58Alphabet =
-    '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrmnpqrstuvwxyz';
-
+// Use bs58 package from pub for reliable base58 encoding
+// This matches bitcoin/base58 encoding exactly what OpenClaw expects
 String base58Encode(List<int> bytes) {
-  if (bytes.isEmpty) return '';
-
-  // Count leading zeros
-  int zeros = 0;
-  while (zeros < bytes.length && bytes[zeros] == 0) {
-    zeros++;
-  }
-
-  // Convert bytes to big integer
-  BigInt number = BigInt.zero;
-  for (int i = zeros; i < bytes.length; i++) {
-    number = number * BigInt.from(256) + BigInt.from(bytes[i]);
-  }
-
-  final buffer = StringBuffer();
-  while (number > BigInt.zero) {
-    final remainder = number % BigInt.from(58);
-    number = number ~/ BigInt.from(58);
-    buffer.write(_base58Alphabet[remainder.toInt()]);
-  }
-
-  // Add leading 1 for zero bytes
-  final result = String.fromCharCodes(
-    Iterable.generate(zeros, (_) => _base58Alphabet.codeUnitAt(0))
-  ) + buffer.toString().split('').reversed.join('');
-
-  return result;
+  return base58.encode(Uint8List.fromList(bytes));
 }
 
 typedef OnChunkCallback = void Function(String chunk);
