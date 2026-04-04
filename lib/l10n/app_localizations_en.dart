@@ -207,6 +207,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get retry => 'Retry';
 
   @override
+  String get selectModel => 'Select Model';
+
+  @override
   String get voice => 'Voice';
 
   @override
@@ -247,10 +250,4 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reconnect => 'Reconnect';
-
-  @override
-  String get selectModel => 'Select Model';
-
-  @override
-  String get save => 'Save';
 }

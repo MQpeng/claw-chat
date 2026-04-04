@@ -207,6 +207,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get retry => '重试';
 
   @override
+  String get selectModel => '选择模型';
+
+  @override
   String get voice => '语音';
 
   @override
@@ -247,10 +250,4 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get reconnect => '重连';
-
-  @override
-  String get selectModel => '选择模型';
-
-  @override
-  String get save => '保存';
 }

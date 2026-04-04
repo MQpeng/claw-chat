@@ -581,12 +581,6 @@ abstract class AppLocalizations {
   /// **'Select Model'**
   String get selectModel;
 
-  /// No description provided for @save.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get save;
-}
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
