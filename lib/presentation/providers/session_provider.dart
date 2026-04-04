@@ -25,7 +25,10 @@ class SessionListNotifier extends Notifier<List<ChatSession>> {
 
   Future<void> _loadFromRemote() async {
     final connection = ref.read(connectionProvider);
-    if (!connection.isConnected) return;
+    if (!connection.isConnected) {
+      refresh();
+      return;
+    }
 
     if (_loading) return;
     _loading = true;
@@ -41,7 +44,7 @@ class SessionListNotifier extends Notifier<List<ChatSession>> {
       });
 
       if (result is Map && result.containsKey('result')) {
-      final list = result['result'] as List;
+        final list = result['result'] as List;
         // Sync remote sessions to local storage
         for (final item in list) {
           final session = ChatSession(
@@ -59,7 +62,6 @@ class SessionListNotifier extends Notifier<List<ChatSession>> {
           );
           await _repository.saveSession(session);
         }
-        refresh();
       } else if (result is List) {
         // For backwards compatibility if result is returned directly
         for (final item in result) {
@@ -78,13 +80,13 @@ class SessionListNotifier extends Notifier<List<ChatSession>> {
           );
           await _repository.saveSession(session);
         }
-        refresh();
       }
     } catch (e) {
       // If remote fails, still use cached local sessions
-      refresh();
     } finally {
       _loading = false;
+      // Always refresh state after attempting remote load
+      refresh();
     }
   }
 

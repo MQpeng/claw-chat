@@ -111,6 +111,7 @@ class ConnectionNotifier extends Notifier<ConnectionState> {
         final sessionNotifier = ref.read(sessionListProvider.notifier);
         sessionNotifier.refreshFromRemote().then((_) {
           // Auto-select first session if none selected
+          // Need to read again after refresh because state may have changed
           final sessions = ref.read(sessionListProvider);
           final currentId = ref.read(currentSessionIdProvider);
           if (sessions.isNotEmpty && currentId == null) {
