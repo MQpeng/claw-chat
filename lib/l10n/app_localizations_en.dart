@@ -289,4 +289,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get failedToLoadModels => 'Failed to load models';
+
+  @override
+  String get clientLogs => 'Client Logs';
+
+  @override
+  String get pauseAutoScroll => 'Pause auto-scroll';
+
+  @override
+  String get resumeAutoScroll => 'Resume auto-scroll';
+
+  @override
+  String get copyAllLogs => 'Copy all logs';
+
+  @override
+  String get clearLogs => 'Clear logs';
+
+  @override
+  String get logsCopied => 'Logs copied to clipboard';
+
+  @override
+  String get noLogsYet => 'No logs yet';
+
+  @override
+  String get logsWillAppearHere => 'Logs will appear here when app runs';
 }

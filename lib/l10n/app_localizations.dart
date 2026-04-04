@@ -660,6 +660,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to load models'**
   String get failedToLoadModels;
+
+  /// No description provided for @clientLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Client Logs'**
+  String get clientLogs;
+
+  /// No description provided for @pauseAutoScroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause auto-scroll'**
+  String get pauseAutoScroll;
+
+  /// No description provided for @resumeAutoScroll.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume auto-scroll'**
+  String get resumeAutoScroll;
+
+  /// No description provided for @copyAllLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy all logs'**
+  String get copyAllLogs;
+
+  /// No description provided for @clearLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear logs'**
+  String get clearLogs;
+
+  /// No description provided for @logsCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Logs copied to clipboard'**
+  String get logsCopied;
+
+  /// No description provided for @noLogsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No logs yet'**
+  String get noLogsYet;
+
+  /// No description provided for @logsWillAppearHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Logs will appear here when app runs'**
+  String get logsWillAppearHere;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:flutter/services.dart';
+import '../../l10n/app_localizations.dart';
 
 class ClientLogsPage extends StatefulWidget {
   const ClientLogsPage({super.key});
@@ -54,22 +55,24 @@ class _ClientLogsPageState extends State<ClientLogsPage> {
   }
 
   Future<void> _copyLogs() async {
+    final l10n = AppLocalizations.of(context)!;
     final text = _logs.join('\n');
     if (text.isEmpty) return;
     await Clipboard.setData(ClipboardData(text: text));
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Logs copied to clipboard')),
+         SnackBar(content: Text(l10n.logsCopied)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Client Logs'),
+        title: Text(l10n.clientLogs),
         actions: [
           IconButton(
             icon: Icon(
@@ -80,17 +83,17 @@ class _ClientLogsPageState extends State<ClientLogsPage> {
                 _autoScroll = !_autoScroll;
               });
             },
-            tooltip: _autoScroll ? 'Pause auto-scroll' : 'Resume auto-scroll',
+            tooltip: _autoScroll ? l10n.pauseAutoScroll : l10n.resumeAutoScroll,
           ),
           IconButton(
             icon: const Icon(Icons.copy),
             onPressed: _logs.isEmpty ? null : _copyLogs,
-            tooltip: 'Copy all logs',
+            tooltip: l10n.copyAllLogs,
           ),
           IconButton(
             icon: const Icon(Icons.delete_sweep),
             onPressed: _logs.isEmpty ? null : _clearLogs,
-            tooltip: 'Clear logs',
+            tooltip: l10n.clearLogs,
           ),
         ],
       ),
@@ -105,9 +108,9 @@ class _ClientLogsPageState extends State<ClientLogsPage> {
                     color: theme.colorScheme.primary.withOpacity(0.3),
                   ),
                   const SizedBox(height: 16),
-                  const Text('No logs yet'),
+                   Text(l10n.noLogsYet),
                   const SizedBox(height: 8),
-                  const Text('Logs will appear here when app runs'),
+                   Text(l10n.logsWillAppearHere),
                 ],
               ),
             )

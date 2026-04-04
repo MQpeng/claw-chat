@@ -289,4 +289,28 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get failedToLoadModels => '加载模型失败';
+
+  @override
+  String get clientLogs => '客户端日志';
+
+  @override
+  String get pauseAutoScroll => '暂停自动滚动';
+
+  @override
+  String get resumeAutoScroll => '恢复自动滚动';
+
+  @override
+  String get copyAllLogs => '复制所有日志';
+
+  @override
+  String get clearLogs => '清空日志';
+
+  @override
+  String get logsCopied => '日志已复制到剪贴板';
+
+  @override
+  String get noLogsYet => '暂无日志';
+
+  @override
+  String get logsWillAppearHere => '运行时日志会显示在这里';
 }
