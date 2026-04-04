@@ -247,4 +247,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reconnect => 'Reconnect';
+
+  @override
+  String get selectModel => 'Select Model';
+
+  @override
+  String get save => 'Save';
 }

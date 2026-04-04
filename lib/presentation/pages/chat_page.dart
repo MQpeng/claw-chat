@@ -10,6 +10,7 @@ import '../../../data/datasource/remote/openclaw_client.dart';
 import '../providers/session_provider.dart';
 import '../providers/chat_provider.dart';
 import '../providers/connection_provider.dart';
+import '../providers/theme_provider.dart';
 import '../widgets/chat_bubble.dart';
 import '../widgets/input_bar.dart';
 
@@ -99,18 +100,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     );
   }
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
   void _onScrollChanged() {
-    final atBottom = _scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 100;
-    setState(() {
-      _showScrollToBottom = !atBottom;
-    });
+    if (_scrollController.hasClients) {
+      final position = _scrollController.position.pixels;
+      final maxPosition = _scrollController.position.maxScrollExtent;
+      setState(() {
+        _showScrollToBottom = position < maxPosition - 50;
+      });
+    }
   }
 
   void _scrollToBottom() {
@@ -119,117 +116,16 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
+          curve: Curves.easeOutCirc,
         );
       }
     });
   }
 
-  Future<void> _executeSlashCommand(
-    String command,
-    String args,
-    String fullText,
+  Future<void> _handleSendSubmitted(
+    String text,
     List<FileItem> attachments,
-    OpenClawClient client,
-    String currentSessionId,
   ) async {
-    // Execute slash command and show result as system message
-    final result = await client.request(command == 'clear' || command == 'reset'
-        ? 'chat.clear'
-        : command == 'compact'
-            ? 'sessions.compact'
-            : 'sessions.patch', {
-      'key': currentSessionId,
-      if (command == 'model' && args.isNotEmpty) 'model': args.trim(),
-      if (command == 'think') 'thinkingLevel': args.trim(),
-      if (command == 'fast') 'fastMode': args.trim() == 'on',
-      if (command == 'verbose') 'verboseLevel': args.trim(),
-    });
-
-    // Special handling for commands with side effects
-    switch (command) {
-      case 'new':
-        // Create new session
-        ref.read(sessionListProvider.notifier).createSession(args.isNotEmpty ? args : 'New Session');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Created new session')),
-          );
-        }
-        return;
-      case 'clear':
-        // Clear all messages in current session
-        await ref.read(chatMessagesProvider.notifier).clearCurrentSession();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Chat history cleared')),
-          );
-        }
-        return;
-      case 'reset':
-        // Reset conversation
-        await ref.read(chatMessagesProvider.notifier).clearCurrentSession();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Session reset')),
-          );
-        }
-        return;
-      case 'compact':
-        // Context compacted
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Context compacted successfully')),
-          );
-        }
-        ref.refresh(sessionListProvider.notifier).refreshFromRemote();
-        return;
-      case 'focus':
-        // toggle focus mode handled by gateway, refresh sessions
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Focus mode toggled')),
-          );
-        }
-        return;
-      case 'stop':
-        // Stop current run
-        if (ref.read(chatMessagesProvider.notifier).currentRunId != null) {
-          // Gateway will handle abort
-          await client.request('chat.abort', {'sessionKey': currentSessionId});
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Current run stopped')),
-            );
-          }
-        }
-        return;
-      case 'help':
-        // Show help already handled by client, display result
-        break;
-      default:
-        // Other commands let gateway respond
-        break;
-    }
-
-    // Show command result as system message
-    final content = result is Map ? result['content']?.toString() ?? '' : result.toString();
-    if (content.isEmpty) return;
-
-    final systemMessage = ChatMessage(
-      id: const Uuid().v4(),
-      sessionId: currentSessionId,
-      role: MessageRole.system,
-      content: content,
-      createdAt: DateTime.now(),
-      status: MessageStatus.sent,
-    );
-
-    await ref.read(chatMessagesProvider.notifier).saveMessage(systemMessage);
-    _scrollToBottom();
-  }
-
-  Future<void> _sendMessage(String text, List<FileItem> attachments) async {
     final currentSessionId = ref.read(currentSessionIdProvider);
     if (currentSessionId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -305,6 +201,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     _currentStreamingMessageId = assistantMessage.id;
     _scrollToBottom();
 
+    // Use selected model from settings
+    final selectedModel = ref.watch(modelProvider);
     client.sendMessage(
       currentSessionId,
       message,
@@ -317,11 +215,44 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         _currentStreamingMessageId = null;
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $error')),
+            const SnackBar(content: Text('Streaming error')),
           );
         }
       },
+      model: selectedModel.isNotEmpty ? selectedModel : null,
     );
+  }
+
+  Future<void> _executeSlashCommand(
+    String commandName,
+    String args,
+    String originalText,
+    List<FileItem> attachments,
+    OpenClawClient client,
+    String currentSessionId,
+  ) async {
+    switch (commandName) {
+      case 'clear':
+      case 'new':
+        ref.read(chatMessagesProvider.notifier).clearCurrentSession();
+        return;
+      case 'stop':
+        if (ref.read(chatMessagesProvider.notifier).currentRunId != null) {
+          client.request('chat.stop', {
+            'runId': ref.read(chatMessagesProvider.notifier).currentRunId,
+          });
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Current run stopped')),
+            );
+          }
+        }
+        return;
+      default:
+        break;
+    }
+
+    // Other commands let gateway respond
   }
 
   @override
@@ -367,23 +298,25 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               itemCount: messages.length,
               itemBuilder: (context, index) {
                 final message = messages[index];
-                return ChatBubble(message: message);
+                return ChatBubble(
+                  message: message,
+                  isUser: message.role == MessageRole.user,
+                );
               },
             ),
           ),
           if (_showScrollToBottom)
-            Align(
+            Container(
               alignment: Alignment.bottomRight,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 8, right: 16),
-                child: FloatingActionButton.small(
-                  onPressed: _scrollToBottom,
-                  child: const Icon(Icons.arrow_downward),
-                ),
+              padding: const EdgeInsets.only(right: 16, bottom: 8),
+              child: FloatingActionButton(
+                mini: true,
+                onPressed: _scrollToBottom,
+                child: const Icon(Icons.arrow_downward),
               ),
             ),
           InputBar(
-            onSend: _sendMessage,
+            onSend: _handleSendSubmitted,
             enabled: connection.isConnected,
           ),
         ],

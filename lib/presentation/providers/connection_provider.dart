@@ -122,6 +122,11 @@ class ConnectionNotifier extends Notifier<ConnectionState> {
               return b.updatedAt.compareTo(a.updatedAt);
             });
             ref.read(currentSessionIdProvider.notifier).state = sessions.first.id;
+          } else if (sessions.isEmpty && currentId == null) {
+            // No sessions from remote, create default session like OpenClaw Control UI
+            sessionNotifier.createSession('default').then((session) {
+              ref.read(currentSessionIdProvider.notifier).state = session.id;
+            });
           }
         });
         return true;

@@ -5,6 +5,7 @@ import '../../../core/theme/app_theme.dart';
 
 final themeProvider = NotifierProvider<ThemeNotifier, ThemeMode>(ThemeNotifier.new);
 final themeColorProvider = NotifierProvider<ThemeColorNotifier, AppThemeColor>(ThemeColorNotifier.new);
+final modelProvider = NotifierProvider<ModelNotifier, String>(ModelNotifier.new);
 
 class ThemeNotifier extends Notifier<ThemeMode> {
   static const _key = 'theme_mode';
@@ -52,5 +53,37 @@ class ThemeColorNotifier extends Notifier<AppThemeColor> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_key, color.name);
     state = color;
+  }
+}
+
+class ModelNotifier extends Notifier<String> {
+  static const _key = 'default_model';
+
+  @override
+  String build() {
+    // Default model is empty, gateway will use default configured on server
+    // User can select specific model from available models
+    final prefs = SharedPreferences.getInstance();
+    prefs.then((prefs) {
+      final value = prefs.getString(_key);
+      if (value != null && value.isNotEmpty) {
+        state = value;
+      }
+    });
+    return '';
+  }
+
+  Future<void> loadModel() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getString(_key);
+    if (value != null) {
+      state = value;
+    }
+  }
+
+  Future<void> setModel(String model) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_key, model);
+    state = model;
   }
 }

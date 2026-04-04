@@ -337,6 +337,7 @@ class OpenClawClient {
     required OnChunkCallback onChunk,
     required OnDoneCallback onDone,
     required OnErrorCallback onError,
+    String? model,
   }) {
     if (_channel == null || !isConnected) {
       onError('Not connected');
@@ -352,6 +353,8 @@ class OpenClawClient {
         'content': message.content,
         if (message.attachments != null)
           'attachments': message.attachments!.map((a) => a.toJson()).toList(),
+        if (model != null && model.isNotEmpty)
+          'model': model,
       },
     };
 

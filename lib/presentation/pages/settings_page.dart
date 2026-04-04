@@ -34,6 +34,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
     final themeColor = ref.watch(themeColorProvider);
+    final defaultModel = ref.watch(modelProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -107,6 +108,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                         );
                       }).toList(),
                     ),
+                  ),
+                  const Divider(height: 1),
+                  ListTile(
+                    title: const Text('Default Model'),
+                    subtitle: Text(defaultModel.isEmpty ? 'Server default' : defaultModel),
+                    trailing: const Icon(Icons.arrow_forward_ios),
+                    onTap: () => _showModelSelection(context, ref),
                   ),
                 ],
               ),
@@ -202,6 +210,23 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     }
   }
 
+  void _showModelSelection(BuildContext context, WidgetRef ref) async {
+    final connection = ref.watch(connectionProvider);
+    if (!connection.isConnected) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Not connected to OpenClaw')),
+        );
+      }
+      return;
+    }
+
+    showDialog<bool>(
+      context: context,
+      builder: (context) => const ModelSelectionDialog(),
+    );
+  }
+
   Future<void> _clearAllData(BuildContext context, WidgetRef ref) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -237,5 +262,106 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         const SnackBar(content: Text('All data cleared')),
       );
     }
+  }
+}
+
+class ModelSelectionDialog extends ConsumerStatefulWidget {
+  const ModelSelectionDialog({super.key});
+
+  @override
+  ConsumerState<ModelSelectionDialog> createState() => _ModelSelectionDialogState();
+}
+
+class _ModelSelectionDialogState extends ConsumerState<ModelSelectionDialog> {
+  bool _loading = false;
+  List<String> _models = [];
+  String? _selectedModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedModel = ref.read(modelProvider);
+    _loadModels();
+  }
+
+  Future<void> _loadModels() async {
+    setState(() {
+      _loading = true;
+    });
+
+    try {
+      final client = ref.read(connectionProvider.notifier).client;
+      final result = await client.request('models.list');
+      if (result is Map && result.containsKey('models')) {
+        final models = (result['models'] as List).cast<String>();
+        setState(() {
+          _models = models;
+          _loading = false;
+        });
+      } else {
+        setState(() {
+          _loading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _loading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load models: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentModel = ref.watch(modelProvider);
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      title: Text(l10n.selectModel),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : _models.isEmpty
+                ? Center(child: Text(l10n.noData))
+                : ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _models.length,
+                    itemBuilder: (context, index) {
+                      final model = _models[index];
+                      return RadioListTile<String>(
+                        title: Text(model),
+                        value: model,
+                        groupValue: _selectedModel ?? currentModel,
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedModel = value;
+                          });
+                        },
+                      );
+                    },
+                  ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
+        ),
+        TextButton(
+          onPressed: () {
+            if (_selectedModel != null) {
+              ref.read(modelProvider.notifier).setModel(_selectedModel!);
+            } else if (_models.isNotEmpty) {
+              ref.read(modelProvider.notifier).setModel(_models.first);
+            }
+            Navigator.of(context).pop(true);
+          },
+          child: Text(l10n.save),
+        ),
+      ],
+    );
   }
 }
