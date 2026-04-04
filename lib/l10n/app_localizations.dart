@@ -582,6 +582,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select Model'**
   String get selectModel;
+
+  /// No description provided for @themeMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme Mode'**
+  String get themeMode;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow system'**
+  String get themeSystem;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// No description provided for @themeColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme Color'**
+  String get themeColor;
+
+  /// No description provided for @defaultModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Default Model'**
+  String get defaultModel;
+
+  /// No description provided for @serverDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Server default'**
+  String get serverDefault;
+
+  /// No description provided for @clearAllData.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear All Data'**
+  String get clearAllData;
+
+  /// No description provided for @clearAllDataConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'This will delete all sessions and messages.\nThis action cannot be undone.'**
+  String get clearAllDataConfirmation;
+
+  /// No description provided for @clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get clear;
+
+  /// No description provided for @appName.
+  ///
+  /// In en, this message translates to:
+  /// **'claw-chat'**
+  String get appName;
+
+  /// No description provided for @aboutText.
+  ///
+  /// In en, this message translates to:
+  /// **'Lightweight Flutter mobile client for OpenClaw\nConnect directly to your OpenClaw Gateway via LAN/Tailscale'**
+  String get aboutText;
+
+  /// No description provided for @failedToLoadModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load models'**
+  String get failedToLoadModels;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

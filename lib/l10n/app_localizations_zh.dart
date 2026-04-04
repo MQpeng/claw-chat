@@ -250,4 +250,43 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get reconnect => '重连';
+
+  @override
+  String get themeMode => '主题模式';
+
+  @override
+  String get themeSystem => '跟随系统';
+
+  @override
+  String get themeLight => '浅色';
+
+  @override
+  String get themeDark => '深色';
+
+  @override
+  String get themeColor => '主题颜色';
+
+  @override
+  String get defaultModel => '默认模型';
+
+  @override
+  String get serverDefault => '服务器默认';
+
+  @override
+  String get clearAllData => '清空所有数据';
+
+  @override
+  String get clearAllDataConfirmation => '这会删除所有会话和消息。\n此操作无法撤销。';
+
+  @override
+  String get clear => '清空';
+
+  @override
+  String get appName => 'claw-chat';
+
+  @override
+  String get aboutText => 'OpenClaw 轻量级 Flutter 移动客户端\n通过 LAN/Tailscale 直接连接你的 OpenClaw 网关';
+
+  @override
+  String get failedToLoadModels => '加载模型失败';
 }

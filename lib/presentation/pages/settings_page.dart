@@ -7,6 +7,7 @@ import '../../data/datasource/local/hive_storage.dart';
 import '../providers/theme_provider.dart';
 import '../providers/connection_provider.dart';
 import '../providers/session_provider.dart';
+import '../../../core/providers/model_provider.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -33,6 +34,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final themeMode = ref.watch(themeProvider);
     final themeColor = ref.watch(themeColorProvider);
     final defaultModel = ref.watch(modelProvider);
@@ -40,7 +42,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(l10n.settings),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -52,8 +54,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               child: Column(
                 children: [
                   ListTile(
-                    title: const Text('Theme Mode'),
-                    subtitle: Text(_themeModeToString(themeMode)),
+                    title: Text(l10n.themeMode),
+                    subtitle: Text(_themeModeToString(themeMode, l10n)),
                     trailing: DropdownButton<ThemeMode>(
                       value: themeMode,
                       onChanged: (newMode) {
@@ -61,25 +63,25 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                           ref.read(themeProvider.notifier).setTheme(newMode);
                         }
                       },
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: ThemeMode.system,
-                          child: Text('System'),
+                          child: Text(l10n.themeSystem),
                         ),
                         DropdownMenuItem(
                           value: ThemeMode.light,
-                          child: Text('Light'),
+                          child: Text(l10n.themeLight),
                         ),
                         DropdownMenuItem(
                           value: ThemeMode.dark,
-                          child: Text('Dark'),
+                          child: Text(l10n.themeDark),
                         ),
                       ],
                     ),
                   ),
                   const Divider(height: 1),
                   ListTile(
-                    title: const Text('Theme Color'),
+                    title: Text(l10n.themeColor),
                     subtitle: Text(themeColor.name),
                     trailing: DropdownButton<AppThemeColor>(
                       value: themeColor,
@@ -112,8 +114,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   ),
                   const Divider(height: 1),
                   ListTile(
-                    title: const Text('Default Model'),
-                    subtitle: Text(defaultModel.isEmpty ? 'Server default' : defaultModel),
+                    title: Text(l10n.defaultModel),
+                    subtitle: Text(defaultModel.isEmpty ? l10n.serverDefault : defaultModel),
                     trailing: const Icon(Icons.arrow_forward_ios),
                     onTap: () => _showModelSelection(context, ref),
                   ),
@@ -129,17 +131,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               child: Column(
                 children: [
                   ListTile(
-                    title: const Text(
-                      'Clear All Sessions',
-                      style: TextStyle(color: Colors.red),
+                    title: Text(
+                      l10n.clearAllSessions,
+                      style: const TextStyle(color: Colors.red),
                     ),
-                    subtitle: const Text('Delete all sessions and messages'),
+                    subtitle: Text(l10n.deleteAllSessionsAndMessages),
                     onTap: () => _clearAllData(context, ref),
                   ),
                   const Divider(height: 1),
                   ListTile(
-                    title: const Text('Reconnect to OpenClaw'),
-                    subtitle: const Text('Disconnect and reconnect'),
+                    title: Text(l10n.reconnectToOpenClaw),
+                    subtitle: Text(l10n.disconnectAndReconnect),
                     onTap: () {
                       ref.read(connectionProvider.notifier).disconnect();
                       ref.read(connectionProvider.notifier).connect();
@@ -159,14 +161,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Column(
                 children: [
-                  const AboutListTile(
-                    applicationName: 'claw-chat',
+                   AboutListTile(
+                    applicationName: l10n.appName,
                     applicationLegalese: 'MIT License',
                     aboutBoxChildren: [
-                      SizedBox(height: 8),
+                      const SizedBox(height: 8),
                       Text(
-                        'Lightweight Flutter mobile client for OpenClaw\n'
-                        'Connect directly to your OpenClaw Gateway via LAN/Tailscale',
+                        l10n.aboutText,
                       ),
                     ],
                   ),
@@ -180,7 +181,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Version'),
+                           Text(l10n.version),
                           Text(
                             _version,
                             style: TextStyle(
@@ -200,23 +201,24 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
-  String _themeModeToString(ThemeMode mode) {
+  String _themeModeToString(ThemeMode mode, AppLocalizations l10n) {
     switch (mode) {
       case ThemeMode.system:
-        return 'Follow system';
+        return l10n.themeSystem;
       case ThemeMode.light:
-        return 'Light';
+        return l10n.themeLight;
       case ThemeMode.dark:
-        return 'Dark';
+        return l10n.themeDark;
     }
   }
 
   void _showModelSelection(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
     final connection = ref.watch(connectionProvider);
     if (!connection.isConnected) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Not connected to OpenClaw')),
+           SnackBar(content: Text(l10n.notConnectedToOpenClaw)),
         );
       }
       return;
@@ -229,22 +231,22 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Future<void> _clearAllData(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Clear All Data'),
-        content: const Text(
-          'This will delete all sessions and messages.\n'
-          'This action cannot be undone.',
+        title: Text(l10n.clearAllData),
+        content: Text(
+          l10n.clearAllDataConfirmation,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Clear', style: TextStyle(color: Colors.red)),
+            child: Text(l10n.clear, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -260,7 +262,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     ref.read(sessionListProvider.notifier).refresh();
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('All data cleared')),
+         SnackBar(content: Text(l10n.allDataCleared)),
       );
     }
   }
@@ -309,8 +311,9 @@ class _ModelSelectionDialogState extends ConsumerState<ModelSelectionDialog> {
         _loading = false;
       });
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load models: $e')),
+          SnackBar(content: Text('${l10n.failedToLoadModels}: $e')),
         );
       }
     }
@@ -318,8 +321,8 @@ class _ModelSelectionDialogState extends ConsumerState<ModelSelectionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final currentModel = ref.watch(modelProvider);
     final l10n = AppLocalizations.of(context)!;
+    final currentModel = ref.watch(modelProvider);
     return AlertDialog(
       title: Text(l10n.selectModel),
       content: SizedBox(

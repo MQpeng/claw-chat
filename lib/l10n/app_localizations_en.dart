@@ -250,4 +250,43 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reconnect => 'Reconnect';
+
+  @override
+  String get themeMode => 'Theme Mode';
+
+  @override
+  String get themeSystem => 'Follow system';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get themeColor => 'Theme Color';
+
+  @override
+  String get defaultModel => 'Default Model';
+
+  @override
+  String get serverDefault => 'Server default';
+
+  @override
+  String get clearAllData => 'Clear All Data';
+
+  @override
+  String get clearAllDataConfirmation => 'This will delete all sessions and messages.\nThis action cannot be undone.';
+
+  @override
+  String get clear => 'Clear';
+
+  @override
+  String get appName => 'claw-chat';
+
+  @override
+  String get aboutText => 'Lightweight Flutter mobile client for OpenClaw\nConnect directly to your OpenClaw Gateway via LAN/Tailscale';
+
+  @override
+  String get failedToLoadModels => 'Failed to load models';
 }
