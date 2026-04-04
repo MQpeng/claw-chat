@@ -1,14 +1,35 @@
 import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
+part 'chat_session.g.dart';
+
+@HiveType(typeId: 0)
 class ChatSession extends HiveObject {
+  @HiveField(0)
   final String id;
+
+  @HiveField(1)
   String name;
+
+  @HiveField(2)
   final DateTime createdAt;
+
+  @HiveField(3)
   DateTime updatedAt;
+
+  @HiveField(4)
   bool isPinned;
+
+  @HiveField(5)
   bool isArchived;
+
+  @HiveField(6)
   int unreadCount;
+
+  @HiveField(7)
   final String? modelId;
+
+  @HiveField(8)
   final String? systemPrompt;
 
   ChatSession({

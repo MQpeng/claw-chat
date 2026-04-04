@@ -1,15 +1,32 @@
 import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'message_role.dart';
 import 'message_status.dart';
 import 'file_item.dart';
 
+part 'chat_message.g.dart';
+
+@HiveType(typeId: 1)
 class ChatMessage extends HiveObject {
+  @HiveField(0)
   final String id;
+
+  @HiveField(1)
   final String sessionId;
+
+  @HiveField(2)
   final MessageRole role;
+
+  @HiveField(3)
   String content;
+
+  @HiveField(4)
   final DateTime createdAt;
+
+  @HiveField(5)
   MessageStatus status;
+
+  @HiveField(6)
   List<FileItem>? attachments;
 
   ChatMessage({

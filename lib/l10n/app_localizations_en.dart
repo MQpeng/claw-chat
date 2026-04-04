@@ -459,7 +459,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cameraPermissionDenied => 'Camera permission denied';
 
   @override
-  String get scanQrCode => 'Scan QR Code';
+  String get sessions => 'Sessions';
 
   @override
   String get channelAdded => 'Channel added';
@@ -484,7 +484,4 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteChannelConfirm => 'Are you sure you want to delete this channel?';
-
-  @override
-  String get delete => 'Delete';
 }

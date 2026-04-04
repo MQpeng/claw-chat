@@ -997,11 +997,11 @@ abstract class AppLocalizations {
   /// **'Camera permission denied'**
   String get cameraPermissionDenied;
 
-  /// No description provided for @scanQrCode.
+  /// No description provided for @sessions.
   ///
   /// In en, this message translates to:
-  /// **'Scan QR Code'**
-  String get scanQrCode;
+  /// **'Sessions'**
+  String get sessions;
 
   /// No description provided for @channelAdded.
   ///
@@ -1050,12 +1050,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to delete this channel?'**
   String get deleteChannelConfirm;
-
-  /// No description provided for @delete.
-  ///
-  /// In en, this message translates to:
-  /// **'Delete'**
-  String get delete;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

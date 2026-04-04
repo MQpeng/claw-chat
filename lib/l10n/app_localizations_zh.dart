@@ -459,7 +459,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get cameraPermissionDenied => '相机权限被拒绝';
 
   @override
-  String get scanQrCode => '扫描二维码';
+  String get sessions => '会话';
 
   @override
   String get channelAdded => '频道已添加';
@@ -484,7 +484,4 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get deleteChannelConfirm => '确定要删除这个频道吗？';
-
-  @override
-  String get delete => '删除';
 }

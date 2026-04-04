@@ -474,7 +474,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       case HomeMenuItem.channels:
         return l10n.channels;
       case HomeMenuItem.sessions:
-        return l10n.chat;
+        return l10n.sessions;
       case HomeMenuItem.cronJobs:
         return l10n.cronJobs;
       case HomeMenuItem.skills:
