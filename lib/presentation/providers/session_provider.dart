@@ -194,6 +194,11 @@ class SessionListNotifier extends Notifier<List<ChatSession>> {
     await _repo.clearUnread(sessionId);
     _updateState();
   }
+
+  /// Refresh state from local (used after clear all data)
+  void refresh() {
+    _updateState();
+  }
 }
 
 // Current selected session
