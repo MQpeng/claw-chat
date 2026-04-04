@@ -454,4 +454,37 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get installUpdate => '安装更新';
+
+  @override
+  String get cameraPermissionDenied => '相机权限被拒绝';
+
+  @override
+  String get scanQrCode => '扫描二维码';
+
+  @override
+  String get channelAdded => '频道已添加';
+
+  @override
+  String get channelAddFailed => '添加频道失败';
+
+  @override
+  String get channelUpdated => '频道已更新';
+
+  @override
+  String get channelUpdateFailed => '更新频道失败';
+
+  @override
+  String get channelDeleted => '频道已删除';
+
+  @override
+  String get channelDeleteFailed => '删除频道失败';
+
+  @override
+  String get deleteChannel => '删除频道';
+
+  @override
+  String get deleteChannelConfirm => '确定要删除这个频道吗？';
+
+  @override
+  String get delete => '删除';
 }

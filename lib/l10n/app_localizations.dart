@@ -990,6 +990,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Install Update'**
   String get installUpdate;
+
+  /// No description provided for @cameraPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera permission denied'**
+  String get cameraPermissionDenied;
+
+  /// No description provided for @scanQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR Code'**
+  String get scanQrCode;
+
+  /// No description provided for @channelAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel added'**
+  String get channelAdded;
+
+  /// No description provided for @channelAddFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to add channel'**
+  String get channelAddFailed;
+
+  /// No description provided for @channelUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel updated'**
+  String get channelUpdated;
+
+  /// No description provided for @channelUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update channel'**
+  String get channelUpdateFailed;
+
+  /// No description provided for @channelDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel deleted'**
+  String get channelDeleted;
+
+  /// No description provided for @channelDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete channel'**
+  String get channelDeleteFailed;
+
+  /// No description provided for @deleteChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Channel'**
+  String get deleteChannel;
+
+  /// No description provided for @deleteChannelConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this channel?'**
+  String get deleteChannelConfirm;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -454,4 +454,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get installUpdate => 'Install Update';
+
+  @override
+  String get cameraPermissionDenied => 'Camera permission denied';
+
+  @override
+  String get scanQrCode => 'Scan QR Code';
+
+  @override
+  String get channelAdded => 'Channel added';
+
+  @override
+  String get channelAddFailed => 'Failed to add channel';
+
+  @override
+  String get channelUpdated => 'Channel updated';
+
+  @override
+  String get channelUpdateFailed => 'Failed to update channel';
+
+  @override
+  String get channelDeleted => 'Channel deleted';
+
+  @override
+  String get channelDeleteFailed => 'Failed to delete channel';
+
+  @override
+  String get deleteChannel => 'Delete Channel';
+
+  @override
+  String get deleteChannelConfirm => 'Are you sure you want to delete this channel?';
+
+  @override
+  String get delete => 'Delete';
 }
