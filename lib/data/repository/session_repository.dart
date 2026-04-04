@@ -6,9 +6,9 @@ class SessionRepository {
 
   SessionRepository(this._storage);
 
-  Future<ChatSession> createSession(String name) {
+  Future<ChatSession> createSession(String name, {String? sessionId}) {
     final session = ChatSession(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: sessionId ?? DateTime.now().millisecondsSinceEpoch.toString(),
       name: name,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),

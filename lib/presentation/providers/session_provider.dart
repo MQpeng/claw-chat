@@ -95,7 +95,24 @@ class SessionListNotifier extends Notifier<List<ChatSession>> {
   }
 
   Future<ChatSession> createSession(String name) async {
-    final session = await _repository.createSession(name);
+    final connection = ref.read(connectionProvider);
+    String? sessionId;
+    if (connection.isConnected) {
+      try {
+        final client = ref.read(connectionProvider.notifier).client;
+        final result = await client.request('sessions.create', {
+          'label': name,
+        });
+        // result should be { "result": { "key": "...", "label": "...", ... } }
+        if (result is Map && result.containsKey('result')) {
+          final created = result['result'] as Map;
+          sessionId = created['key'] as String;
+        }
+      } catch (_) {
+        // If create fails remotely, still create locally
+      }
+    }
+    final session = await _repository.createSession(name, sessionId: sessionId);
     refresh();
     return session;
   }
