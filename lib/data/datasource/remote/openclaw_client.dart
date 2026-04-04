@@ -14,10 +14,14 @@ import '../../../core/constants/app_config.dart';
 import '../../../domain/entities/chat_message.dart';
 import '../../../domain/entities/file_item.dart';
 
-// Use bs58 package from pub for reliable base58 encoding
-// This matches bitcoin/base58 encoding exactly what OpenClaw expects
-String base58Encode(List<int> bytes) {
-  return base58.encode(Uint8List.fromList(bytes));
+// OpenClaw uses base64Url encoding for publicKey
+// https://datatracker.ietf.org/doc/html/rfc4648#section-5
+String base64UrlEncode(List<int> bytes) {
+  String encoded = base64.encode(bytes);
+  return encoded
+      .replaceAll('+', '-')
+      .replaceAll('/', '_')
+      .replaceAll(RegExp(r'=+$'), '');
 }
 
 typedef OnChunkCallback = void Function(String chunk);
@@ -179,33 +183,42 @@ class OpenClawClient {
 
   Future<String> _signChallenge(String nonce, int timestamp) async {
     // Sign the challenge according to OpenClaw protocol v3
-    // Signed payload includes: deviceId, clientId, clientMode, role, scopes, token, nonce, signedAt
-    final payload = json.encode({
-      'deviceId': _deviceId,
-      'client': {
-        'id': 'openclaw-control-ui',
-        'version': '1.0.0',
-        'platform': 'flutter-mobile',
-        'mode': 'ui',
-      },
-      'role': 'operator',
-      'scopes': [
-        'operator.admin',
-        'operator.read',
-        'operator.write',
-        'operator.approvals',
-        'operator.pairing',
-      ],
-      'token': _config!.token,
-      'nonce': nonce,
-      'signedAt': timestamp,
-    });
+    // Format: v3|deviceId|clientId|clientMode|role|scopes|signedAtMs|token|nonce|platform|deviceFamily
+    // scopes are joined with ","
+    const clientId = 'openclaw-control-ui';
+    const clientMode = 'ui';
+    const role = 'operator';
+    const platform = 'flutter-mobile';
+    const deviceFamily = '';
+    final scopes = [
+      'operator.admin',
+      'operator.read',
+      'operator.write',
+      'operator.approvals',
+      'operator.pairing',
+    ].join(",");
+    final token = _config!.token ?? '';
+    
+    final payload = [
+      'v3',
+      _deviceId,
+      clientId,
+      clientMode,
+      role,
+      scopes,
+      timestamp.toString(),
+      token,
+      nonce,
+      platform,
+      deviceFamily,
+    ].join("|");
 
     final algorithm = Ed25519();
     final signature = await algorithm.sign(
       utf8.encode(payload),
       keyPair: _deviceKeyPair!,
     );
+    // Signature is base64 encoded - gateway accepts both base64 and base64Url
     return base64.encode(signature.bytes);
   }
 
@@ -258,7 +271,7 @@ class OpenClawClient {
             'userAgent': 'claw-chat/1.0.0',
             'device': {
               'id': _deviceId,
-              'publicKey': base58Encode(publicKey.bytes),
+              'publicKey': base64UrlEncode(publicKey.bytes),
               'signature': signature,
               'signedAt': timestamp,
               'nonce': nonce,

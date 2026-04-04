@@ -195,6 +195,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get chat => '聊天';
 
   @override
+  String get skills => '技能';
+
+  @override
+  String get refresh => '刷新';
+
+  @override
+  String get noData => '无数据';
+
+  @override
+  String get retry => '重试';
+
+  @override
   String get voice => '语音';
 
   @override

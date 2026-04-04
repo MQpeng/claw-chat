@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../../../core/constants/app_config.dart';
 import '../../../data/datasource/remote/openclaw_client.dart';
+import 'session_provider.dart';
 
 final connectionProvider = NotifierProvider<ConnectionNotifier, ConnectionState>(ConnectionNotifier.new);
 
@@ -106,6 +107,23 @@ class ConnectionNotifier extends Notifier<ConnectionState> {
       final result = await _client.testConnection();
       if (result.success) {
         state = state.copyWith(status: ConnectionStatus.connected);
+        // Refresh session list from gateway after successful connection
+        final sessionNotifier = ref.read(sessionListProvider.notifier);
+        sessionNotifier.refreshFromRemote().then((_) {
+          // Auto-select first session if none selected
+          final sessions = ref.read(sessionListProvider);
+          final currentId = ref.read(currentSessionIdProvider);
+          if (sessions.isNotEmpty && currentId == null) {
+            // Select the first pinned or most recently updated session
+            sessions.sort((a, b) {
+              if (a.isPinned != b.isPinned) {
+                return b.isPinned ? 1 : -1;
+              }
+              return b.updatedAt.compareTo(a.updatedAt);
+            });
+            ref.read(currentSessionIdProvider.notifier).state = sessions.first.id;
+          }
+        });
         return true;
       } else {
         state = state.copyWith(

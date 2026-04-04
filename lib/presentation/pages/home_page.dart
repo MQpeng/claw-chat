@@ -2,19 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
 import '../../data/datasource/remote/openclaw_client.dart';
-import '../providers/session_provider.dart';
-import '../providers/connection_provider.dart';
+import '../providers/session_provider';
+import '../providers/connection_provider';
 import '../../domain/entities/chat_session.dart';
 import 'session_search_delegate.dart';
 import 'settings_page.dart';
 import 'pairing_page.dart';
 import 'client_logs_page.dart';
+import 'skills_page.dart';
 import 'chat_page.dart';
 import '../widgets/session_list_item.dart';
 
 enum HomeMenuItem {
   connect(icon: Icons.link_outlined, label: 'Connect'),
   chat(icon: Icons.chat_bubble_outline, label: 'Chat'),
+  skills(icon: Icons.widgets_outlined, label: 'Skills'),
   voice(icon: Icons.mic_none, label: 'Voice'),
   screen(icon: Icons.desktop_windows_outlined, label: 'Screen'),
   logs(icon: Icons.bug_report_outlined, label: 'Logs'),
@@ -419,6 +421,8 @@ class _HomePageState extends ConsumerState<HomePage> {
         return l10n.connect;
       case HomeMenuItem.chat:
         return l10n.chat;
+      case HomeMenuItem.skills:
+        return l10n.skills;
       case HomeMenuItem.voice:
         return l10n.voice;
       case HomeMenuItem.screen:
@@ -455,6 +459,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ],
               )
             : const ChatPage();
+      case HomeMenuItem.skills:
+        return const SkillsPage();
       case HomeMenuItem.voice:
         return const Center(
           child: Text('Voice coming soon...'),

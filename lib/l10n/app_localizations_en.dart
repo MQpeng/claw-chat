@@ -195,6 +195,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get chat => 'Chat';
 
   @override
+  String get skills => 'Skills';
+
+  @override
+  String get refresh => 'Refresh';
+
+  @override
+  String get noData => 'No data';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
   String get voice => 'Voice';
 
   @override
