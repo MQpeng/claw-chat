@@ -702,6 +702,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Logs will appear here when app runs'**
   String get logsWillAppearHere;
+
+  /// No description provided for @overview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get overview;
+
+  /// No description provided for @channels.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels'**
+  String get channels;
+
+  /// No description provided for @nodes.
+  ///
+  /// In en, this message translates to:
+  /// **'Nodes'**
+  String get nodes;
+
+  /// No description provided for @cronJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'Cron Jobs'**
+  String get cronJobs;
+
+  /// No description provided for @exec.
+  ///
+  /// In en, this message translates to:
+  /// **'Exec Approvals'**
+  String get exec;
+
+  /// No description provided for @config.
+  ///
+  /// In en, this message translates to:
+  /// **'Config'**
+  String get config;
+
+  /// No description provided for @debug.
+  ///
+  /// In en, this message translates to:
+  /// **'Debug'**
+  String get debug;
+
+  /// No description provided for @update.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get update;
+
+  /// No description provided for @activeSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Sessions'**
+  String get activeSessions;
+
+  /// No description provided for @connectedNodes.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected Nodes'**
+  String get connectedNodes;
+
+  /// No description provided for @configuredChannels.
+  ///
+  /// In en, this message translates to:
+  /// **'Configured Channels'**
+  String get configuredChannels;
+
+  /// No description provided for @scheduledJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled Jobs'**
+  String get scheduledJobs;
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon...'**
+  String get comingSoon;
+
+  /// No description provided for @connectionStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection Status'**
+  String get connectionStatus;
+
+  /// No description provided for @quickActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Actions'**
+  String get quickActions;
+
+  /// No description provided for @recentSessions.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Sessions'**
+  String get recentSessions;
+
+  /// No description provided for @addChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Channel'**
+  String get addChannel;
+
+  /// No description provided for @createJob.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Job'**
+  String get createJob;
+
+  /// No description provided for @failedToCreateSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create session'**
+  String get failedToCreateSession;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

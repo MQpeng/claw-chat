@@ -6,6 +6,13 @@ import '../providers/session_provider.dart';
 import '../providers/connection_provider.dart';
 import '../../domain/entities/chat_session.dart';
 import 'session_search_delegate.dart';
+import 'overview_page.dart';
+import 'channels_page.dart';
+import 'nodes_page.dart';
+import 'cron_jobs_page.dart';
+import 'exec_approvals_page.dart';
+import 'config_page.dart';
+import 'debug_page.dart';
 import 'settings_page.dart';
 import 'pairing_page.dart';
 import 'client_logs_page.dart';
@@ -14,13 +21,19 @@ import 'chat_page.dart';
 import '../widgets/session_list_item.dart';
 
 enum HomeMenuItem {
-  connect(icon: Icons.link_outlined, label: 'Connect'),
+  overview(icon: Icons.dashboard_outlined, label: 'Overview'),
   chat(icon: Icons.chat_bubble_outline, label: 'Chat'),
+  channels(icon: Icons.message_outlined, label: 'Channels'),
+  sessions(icon: Icons.forum_outlined, label: 'Sessions'),
+  cronJobs(icon: Icons.schedule_outlined, label: 'Cron Jobs'),
   skills(icon: Icons.widgets_outlined, label: 'Skills'),
-  voice(icon: Icons.mic_none, label: 'Voice'),
-  screen(icon: Icons.desktop_windows_outlined, label: 'Screen'),
+  nodes(icon: Icons.devices_outlined, label: 'Nodes'),
+  exec(icon: Icons.terminal_outlined, label: 'Exec'),
+  config(icon: Icons.settings_outlined, label: 'Config'),
   logs(icon: Icons.bug_report_outlined, label: 'Logs'),
-  settings(icon: Icons.settings_outlined, label: 'Settings');
+  debug(icon: Icons.bug_report_outlined, label: 'Debug'),
+  update(icon: Icons.update_outlined, label: 'Update'),
+  settings(icon: Icons.tune_outlined, label: 'Settings');
 
   const HomeMenuItem({required this.icon, required this.label});
   final IconData icon;
@@ -37,7 +50,7 @@ class HomePage extends ConsumerStatefulWidget {
 class _HomePageState extends ConsumerState<HomePage> {
   bool _didAutoCreate = false;
   bool _didInit = false;
-  HomeMenuItem _selectedMenuItem = HomeMenuItem.chat;
+  HomeMenuItem _selectedMenuItem = HomeMenuItem.overview;
 
   @override
   void initState() {
@@ -71,7 +84,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
 
     final l10n = AppLocalizations.of(context)!;
-    final controller = TextEditingController();
+    final controller = TextEditingController(text: 'default');
     final name = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -109,8 +122,25 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
 
     if (name != null && name.isNotEmpty && mounted) {
-      final session = await ref.read(sessionListProvider.notifier).create(name);
-      ref.read(currentSessionIdProvider.notifier).state = session.id;
+      try {
+        final session = await ref.read(sessionListProvider.notifier).create(name);
+        if (mounted) {
+          ref.read(currentSessionIdProvider.notifier).state = session.id;
+          // Switch to chat page after creating
+          setState(() {
+            _selectedMenuItem = HomeMenuItem.chat;
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(
+              content: Text('${l10n.failedToCreateSession}: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -191,8 +221,27 @@ class _HomePageState extends ConsumerState<HomePage> {
     // Check if we have any sessions, if not create one automatically
     if (sessions.isEmpty && connection.isConnected && !_didAutoCreate) {
       _didAutoCreate = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _createNewSession();
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        // Auto-create 'default' session without asking
+        try {
+          final session = await ref.read(sessionListProvider.notifier).create('default');
+          if (mounted) {
+            ref.read(currentSessionIdProvider.notifier).state = session.id;
+            setState(() {
+              _selectedMenuItem = HomeMenuItem.chat;
+            });
+          }
+        } catch (e) {
+          if (mounted) {
+            final l10n = AppLocalizations.of(context)!;
+            ScaffoldMessenger.of(context).showSnackBar(
+               SnackBar(
+                content: Text('${l10n.failedToCreateSession}: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
       });
     }
 
@@ -417,18 +466,30 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   String _getMenuItemLabel(HomeMenuItem item, AppLocalizations l10n) {
     switch (item) {
-      case HomeMenuItem.connect:
-        return l10n.connect;
+      case HomeMenuItem.overview:
+        return l10n.overview;
       case HomeMenuItem.chat:
         return l10n.chat;
+      case HomeMenuItem.channels:
+        return l10n.channels;
+      case HomeMenuItem.sessions:
+        return l10n.chat;
+      case HomeMenuItem.cronJobs:
+        return l10n.cronJobs;
       case HomeMenuItem.skills:
         return l10n.skills;
-      case HomeMenuItem.voice:
-        return l10n.voice;
-      case HomeMenuItem.screen:
-        return l10n.screen;
+      case HomeMenuItem.nodes:
+        return l10n.nodes;
+      case HomeMenuItem.exec:
+        return l10n.exec;
+      case HomeMenuItem.config:
+        return l10n.config;
       case HomeMenuItem.logs:
         return l10n.logs;
+      case HomeMenuItem.debug:
+        return l10n.debug;
+      case HomeMenuItem.update:
+        return l10n.update;
       case HomeMenuItem.settings:
         return l10n.settings;
     }
@@ -442,9 +503,10 @@ class _HomePageState extends ConsumerState<HomePage> {
     bool isTablet,
   ) {
     switch (selected) {
-      case HomeMenuItem.connect:
-        return const PairingPage();
+      case HomeMenuItem.overview:
+        return const OverviewPage();
       case HomeMenuItem.chat:
+      case HomeMenuItem.sessions:
         if (currentSessionId == null) {
           return _buildSessionList(context, sessions, currentSessionId);
         }
@@ -459,18 +521,26 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ],
               )
             : const ChatPage();
+      case HomeMenuItem.channels:
+        return const ChannelsPage();
+      case HomeMenuItem.cronJobs:
+        return const CronJobsPage();
       case HomeMenuItem.skills:
         return const SkillsPage();
-      case HomeMenuItem.voice:
-        return const Center(
-          child: Text('Voice coming soon...'),
-        );
-      case HomeMenuItem.screen:
-        return const Center(
-          child: Text('Screen coming soon...'),
-        );
+      case HomeMenuItem.nodes:
+        return const NodesPage();
+      case HomeMenuItem.exec:
+        return const ExecApprovalsPage();
+      case HomeMenuItem.config:
+        return const ConfigPage();
       case HomeMenuItem.logs:
         return const ClientLogsPage();
+      case HomeMenuItem.debug:
+        return const DebugPage();
+      case HomeMenuItem.update:
+        return const Center(
+          child: Text('Update coming soon...'),
+        );
       case HomeMenuItem.settings:
         return const SettingsPage();
     }

@@ -310,4 +310,61 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get logsWillAppearHere => 'Logs will appear here when app runs';
+
+  @override
+  String get overview => 'Overview';
+
+  @override
+  String get channels => 'Channels';
+
+  @override
+  String get nodes => 'Nodes';
+
+  @override
+  String get cronJobs => 'Cron Jobs';
+
+  @override
+  String get exec => 'Exec Approvals';
+
+  @override
+  String get config => 'Config';
+
+  @override
+  String get debug => 'Debug';
+
+  @override
+  String get update => 'Update';
+
+  @override
+  String get activeSessions => 'Active Sessions';
+
+  @override
+  String get connectedNodes => 'Connected Nodes';
+
+  @override
+  String get configuredChannels => 'Configured Channels';
+
+  @override
+  String get scheduledJobs => 'Scheduled Jobs';
+
+  @override
+  String get comingSoon => 'Coming soon...';
+
+  @override
+  String get connectionStatus => 'Connection Status';
+
+  @override
+  String get quickActions => 'Quick Actions';
+
+  @override
+  String get recentSessions => 'Recent Sessions';
+
+  @override
+  String get addChannel => 'Add Channel';
+
+  @override
+  String get createJob => 'Create Job';
+
+  @override
+  String get failedToCreateSession => 'Failed to create session';
 }

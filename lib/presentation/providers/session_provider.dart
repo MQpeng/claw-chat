@@ -115,8 +115,11 @@ class SessionListNotifier extends Notifier<List<ChatSession>> {
     }
 
     final session = await _repo.create(name, sessionId: remoteKey);
+    // After creating on server, refresh full list to sync
+    await _syncFromRemote();
     _updateState();
-    return session;
+    // Return the created session
+    return state.firstWhere((s) => s.id == session.id, orElse: () => session);
   }
 
   /// Delete session - delete on gateway first

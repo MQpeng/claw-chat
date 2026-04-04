@@ -310,4 +310,61 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get logsWillAppearHere => '运行时日志会显示在这里';
+
+  @override
+  String get overview => '概览';
+
+  @override
+  String get channels => '频道';
+
+  @override
+  String get nodes => '节点';
+
+  @override
+  String get cronJobs => '计划任务';
+
+  @override
+  String get exec => '执行审批';
+
+  @override
+  String get config => '配置';
+
+  @override
+  String get debug => '调试';
+
+  @override
+  String get update => '更新';
+
+  @override
+  String get activeSessions => '活跃会话';
+
+  @override
+  String get connectedNodes => '已连接节点';
+
+  @override
+  String get configuredChannels => '已配置频道';
+
+  @override
+  String get scheduledJobs => '计划任务';
+
+  @override
+  String get comingSoon => '开发中...';
+
+  @override
+  String get connectionStatus => '连接状态';
+
+  @override
+  String get quickActions => '快捷操作';
+
+  @override
+  String get recentSessions => '最近会话';
+
+  @override
+  String get addChannel => '添加频道';
+
+  @override
+  String get createJob => '创建任务';
+
+  @override
+  String get failedToCreateSession => '创建会话失败';
 }
