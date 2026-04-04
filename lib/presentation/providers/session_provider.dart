@@ -40,8 +40,28 @@ class SessionListNotifier extends Notifier<List<ChatSession>> {
         'limit': 100,
       });
 
-      if (result is List) {
+      if (result is Map && result.containsKey('result')) {
+      final list = result['result'] as List;
         // Sync remote sessions to local storage
+        for (final item in list) {
+          final session = ChatSession(
+            id: item['key'] as String,
+            name: item['label'] as String? ?? 'Untitled',
+            createdAt: DateTime.fromMillisecondsSinceEpoch(
+              (item['createdAt'] as int? ?? 0) * 1000,
+            ),
+            updatedAt: DateTime.fromMillisecondsSinceEpoch(
+              (item['updatedAt'] as int? ?? 0) * 1000,
+            ),
+            isPinned: item['pinned'] as bool? ?? false,
+            isArchived: false,
+            unreadCount: 0,
+          );
+          await _repository.saveSession(session);
+        }
+        refresh();
+      } else if (result is List) {
+        // For backwards compatibility if result is returned directly
         for (final item in result) {
           final session = ChatSession(
             id: item['key'] as String,
