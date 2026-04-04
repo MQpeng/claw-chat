@@ -39,7 +39,7 @@ class _SkillsPageState extends ConsumerState<SkillsPage> {
     });
 
     try {
-      final client = connection.client;
+      final client = ref.read(connectionProvider.notifier).client;
       final result = await client.request('skills.status');
       setState(() {
         _skillsStatus = result as Map<String, dynamic>;
