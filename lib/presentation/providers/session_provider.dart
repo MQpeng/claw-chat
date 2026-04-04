@@ -1,49 +1,55 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:collection/collection.dart';
 import '../../../data/datasource/local/hive_storage.dart';
 import '../../../data/datasource/remote/openclaw_client.dart';
 import '../../../data/repository/session_repository.dart';
 import '../../../domain/entities/chat_session.dart';
-import '../providers/connection_provider.dart';
+import 'connection_provider.dart';
 
-final sessionListProvider = NotifierProvider<SessionListNotifier, List<ChatSession>>(SessionListNotifier.new);
+// Exactly as OpenClaw Control UI:
+// - sessionListProvider provides all active (unarchived) sessions
+// - sorted by pinned first, then updatedAt descending
+// - currentSessionIdProvider tracks selected session
+
+final sessionListProvider = NotifierProvider<SessionListNotifier, List<ChatSession>>(
+  SessionListNotifier.new,
+);
 
 class SessionListNotifier extends Notifier<List<ChatSession>> {
-  late final SessionRepository _repository;
+  late final SessionRepository _repo;
   bool _initialized = false;
-  bool _loading = false;
 
   @override
   List<ChatSession> build() {
     final storage = HiveStorage();
-    _repository = SessionRepository(storage);
-    // Initialize Hive storage async then load from remote
-    storage.init().then((_) {
+    _repo = SessionRepository(storage);
+
+    // Initialize Hive async then load from remote
+    storage.init().then((_) async {
       _initialized = true;
-      _loadFromRemote();
-      refresh();
+      await _syncFromRemote();
+      _updateState();
     });
-    return _repository.getActiveSessions();
+
+    return _repo.getActiveSessions();
   }
 
-  void refresh() {
-    state = _repository.getActiveSessions();
+  void _updateState() {
+    state = _repo.getActiveSessions();
   }
 
-  Future<void> _loadFromRemote() async {
+  /// Full sync from gateway - exactly like Control UI
+  Future<void> _syncFromRemote() async {
     if (!_initialized) return;
 
-    final connection = ref.read(connectionProvider);
-    if (!connection.isConnected) {
-      refresh();
+    final conn = ref.read(connectionProvider);
+    if (!conn.isConnected) {
+      _updateState();
       return;
     }
 
-    if (_loading) return;
-    _loading = true;
-
     try {
       final client = ref.read(connectionProvider.notifier).client;
-      // Request sessions.list from gateway
       final result = await client.request('sessions.list', {
         'includeGlobal': false,
         'includeUnknown': false,
@@ -51,85 +57,72 @@ class SessionListNotifier extends Notifier<List<ChatSession>> {
         'limit': 100,
       });
 
+      List sessions = [];
       if (result is Map && result.containsKey('result')) {
-        final list = result['result'] as List;
-        // Sync remote sessions to local storage
-        for (final item in list) {
-          final session = ChatSession(
-            id: item['key'] as String,
-            name: item['label'] as String? ?? 'Untitled',
-            createdAt: DateTime.fromMillisecondsSinceEpoch(
-              (item['createdAt'] as int? ?? 0) * 1000,
-            ),
-            updatedAt: DateTime.fromMillisecondsSinceEpoch(
-              (item['updatedAt'] as int? ?? 0) * 1000,
-            ),
-            isPinned: item['pinned'] as bool? ?? false,
-            isArchived: false,
-            unreadCount: 0,
-          );
-          await _repository.saveSession(session);
-        }
+        sessions = result['result'] as List;
       } else if (result is List) {
-        // For backwards compatibility if result is returned directly
-        for (final item in result) {
-          final session = ChatSession(
-            id: item['key'] as String,
-            name: item['label'] as String? ?? 'Untitled',
-            createdAt: DateTime.fromMillisecondsSinceEpoch(
-              (item['createdAt'] as int? ?? 0) * 1000,
-            ),
-            updatedAt: DateTime.fromMillisecondsSinceEpoch(
-              (item['updatedAt'] as int? ?? 0) * 1000,
-            ),
-            isPinned: item['pinned'] as bool? ?? false,
-            isArchived: false,
-            unreadCount: 0,
-          );
-          await _repository.saveSession(session);
-        }
+        sessions = result;
+      }
+
+      // Sync each remote session to local
+      for (final item in sessions) {
+        final m = item as Map;
+        final session = ChatSession(
+          id: m['key'] as String,
+          name: m['label'] as String? ?? 'Untitled',
+          createdAt: DateTime.fromMillisecondsSinceEpoch(
+            (m['createdAt'] as int? ?? 0) * 1000,
+          ),
+          updatedAt: DateTime.fromMillisecondsSinceEpoch(
+            (m['updatedAt'] as int? ?? 0) * 1000,
+          ),
+          isPinned: m['pinned'] as bool? ?? false,
+          isArchived: false,
+          unreadCount: 0,
+        );
+        await _repo.saveSession(session);
       }
     } catch (e) {
-      // If remote fails, still use cached local sessions
+      // Keep local cache on error
     } finally {
-      _loading = false;
-      _initialized = true;
-      // Always refresh state after attempting remote load
-      refresh();
+      _updateState();
     }
   }
 
+  /// Public refresh - called after connection completes
   Future<void> refreshFromRemote() async {
-    if (!_initialized) return;
-    await _loadFromRemote();
+    await _syncFromRemote();
   }
 
-  Future<ChatSession> createSession(String name) async {
-    String? sessionId;
-    final connection = ref.read(connectionProvider);
-    if (connection.isConnected) {
+  /// Create new session - always create on gateway first
+  Future<ChatSession> create(String name) async {
+    String? remoteKey;
+
+    final conn = ref.read(connectionProvider);
+    if (conn.isConnected) {
       try {
         final client = ref.read(connectionProvider.notifier).client;
-        final result = await client.request('sessions.create', {
+        final resp = await client.request('sessions.create', {
           'label': name,
         });
-        // result should be { "result": { "key": "...", "label": "...", ... } }
-        if (result is Map && result.containsKey('result')) {
-          final created = result['result'] as Map;
-          sessionId = created['key'] as String;
+        if (resp is Map && resp.containsKey('result')) {
+          final created = resp['result'] as Map;
+          remoteKey = created['key'] as String;
         }
       } catch (_) {
-        // If create fails remotely, still create locally
+        // Fallback to local
       }
     }
-    final session = await _repository.createSession(name, sessionId: sessionId);
-    refresh();
+
+    final session = await _repo.create(name, sessionId: remoteKey);
+    _updateState();
     return session;
   }
 
-  Future<void> deleteSession(String sessionId) async {
-    final connection = ref.read(connectionProvider);
-    if (connection.isConnected) {
+  /// Delete session - delete on gateway first
+  Future<void> delete(String sessionId) async {
+    final conn = ref.read(connectionProvider);
+    if (conn.isConnected) {
       try {
         final client = ref.read(connectionProvider.notifier).client;
         await client.request('sessions.delete', {
@@ -137,55 +130,51 @@ class SessionListNotifier extends Notifier<List<ChatSession>> {
           'deleteTranscript': true,
         });
       } catch (_) {
-        // Ignore errors, still delete locally
+        // Still delete locally
       }
     }
-    await _repository.deleteSession(sessionId);
-    refresh();
+
+    await _repo.delete(sessionId);
+    _updateState();
   }
 
+  /// Toggle pin - sync to gateway
   Future<void> togglePin(String sessionId) async {
-    await _repository.togglePin(sessionId);
-    refresh();
+    await _repo.togglePin(sessionId);
 
-    // Sync to remote
-    final connection = ref.read(connectionProvider);
-    if (connection.isConnected) {
-      final client = ref.read(connectionProvider.notifier).client;
-      final session = _repository.getActiveSessions().firstWhere(
-        (s) => s.id == sessionId,
-        orElse: () => ChatSession(
-          id: sessionId,
-          name: 'Untitled',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        ),
-      );
-      if (session.id.isNotEmpty) {
-        try {
+    final conn = ref.read(connectionProvider);
+    if (conn.isConnected) {
+      try {
+        final sessions = _repo.getActiveSessions();
+        final session = sessions.firstWhereOrNull((s) => s.id == sessionId);
+        if (session != null) {
+          final client = ref.read(connectionProvider.notifier).client;
           await client.request('sessions.patch', {
             'key': sessionId,
             'label': session.name,
+            'pinned': session.isPinned,
           });
-        } catch (_) {
-          // Ignore
         }
+      } catch (_) {
+        // Ignore
       }
     }
+
+    _updateState();
   }
 
+  /// Toggle archive
   Future<void> toggleArchive(String sessionId) async {
-    await _repository.toggleArchive(sessionId);
-    refresh();
+    await _repo.toggleArchive(sessionId);
+    _updateState();
   }
 
-  Future<void> renameSession(String sessionId, String newName) async {
-    await _repository.renameSession(sessionId, newName);
-    refresh();
+  /// Rename - sync to gateway
+  Future<void> rename(String sessionId, String newName) async {
+    await _repo.rename(sessionId, newName);
 
-    // Sync to remote
-    final connection = ref.read(connectionProvider);
-    if (connection.isConnected) {
+    final conn = ref.read(connectionProvider);
+    if (conn.isConnected) {
       try {
         final client = ref.read(connectionProvider.notifier).client;
         await client.request('sessions.patch', {
@@ -196,19 +185,23 @@ class SessionListNotifier extends Notifier<List<ChatSession>> {
         // Ignore
       }
     }
+
+    _updateState();
   }
 
+  /// Clear unread
   Future<void> clearUnread(String sessionId) async {
-    await _repository.clearUnread(sessionId);
-    refresh();
+    await _repo.clearUnread(sessionId);
+    _updateState();
   }
 }
 
+// Current selected session
 final currentSessionIdProvider = StateProvider<String?>((ref) => null);
 
 final currentSessionProvider = Provider<ChatSession?>((ref) {
-  final sessionId = ref.watch(currentSessionIdProvider);
-  if (sessionId == null) return null;
+  final id = ref.watch(currentSessionIdProvider);
+  if (id == null) return null;
   final sessions = ref.watch(sessionListProvider);
-  return sessions.firstWhere((s) => s.id == sessionId);
+  return sessions.firstWhereOrNull((s) => s.id == id);
 });

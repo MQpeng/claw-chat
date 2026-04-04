@@ -6,7 +6,15 @@ import '../../../core/constants/app_config.dart';
 import '../../../data/datasource/remote/openclaw_client.dart';
 import 'session_provider.dart';
 
-final connectionProvider = NotifierProvider<ConnectionNotifier, ConnectionState>(ConnectionNotifier.new);
+// Exactly as OpenClaw Control UI:
+// After successful connection:
+// 1. Refresh session list from gateway
+// 2. If sessions not empty and none selected → auto-select first (pinned first, sorted by updatedAt)
+// 3. If sessions empty → auto-create 'default' session, then select it
+
+final connectionProvider = NotifierProvider<ConnectionNotifier, ConnectionState>(
+  ConnectionNotifier.new,
+);
 
 enum ConnectionStatus {
   loading,
@@ -47,8 +55,6 @@ class ConnectionNotifier extends Notifier<ConnectionState> {
 
   @override
   ConnectionState build() {
-    // Start with loading state while loading saved config
-    // Load saved config async and update state when done
     WidgetsBinding.instance.addPostFrameCallback((_) {
       loadSavedConfig();
     });
@@ -84,7 +90,6 @@ class ConnectionNotifier extends Notifier<ConnectionState> {
         );
       }
     } else {
-      // No config saved, stay disconnected
       state = state.copyWith(
         status: ConnectionStatus.disconnected,
       );
@@ -107,29 +112,31 @@ class ConnectionNotifier extends Notifier<ConnectionState> {
       final result = await _client.testConnection();
       if (result.success) {
         state = state.copyWith(status: ConnectionStatus.connected);
-        // Refresh session list from gateway after successful connection
+
+        // Exactly like Control UI: after connect, refresh sessions and auto-select
         final sessionNotifier = ref.read(sessionListProvider.notifier);
         sessionNotifier.refreshFromRemote().then((_) {
-          // Auto-select first session if none selected
-          // Need to read again after refresh because state may have changed
           final sessions = ref.read(sessionListProvider);
           final currentId = ref.read(currentSessionIdProvider);
+
           if (sessions.isNotEmpty && currentId == null) {
-            // Select the first pinned or most recently updated session
+            // Sort: pinned first → updatedAt descending
             sessions.sort((a, b) {
               if (a.isPinned != b.isPinned) {
                 return b.isPinned ? 1 : -1;
               }
               return b.updatedAt.compareTo(a.updatedAt);
             });
+            // Auto-select first
             ref.read(currentSessionIdProvider.notifier).state = sessions.first.id;
           } else if (sessions.isEmpty && currentId == null) {
-            // No sessions from remote, create default session like OpenClaw Control UI
-            sessionNotifier.createSession('default').then((session) {
+            // Auto-create default session like Control UI
+            sessionNotifier.create('default').then((session) {
               ref.read(currentSessionIdProvider.notifier).state = session.id;
             });
           }
         });
+
         return true;
       } else {
         state = state.copyWith(

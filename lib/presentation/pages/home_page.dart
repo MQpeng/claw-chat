@@ -109,7 +109,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
 
     if (name != null && name.isNotEmpty && mounted) {
-      final session = await ref.read(sessionListProvider.notifier).createSession(name);
+      final session = await ref.read(sessionListProvider.notifier).create(name);
       ref.read(currentSessionIdProvider.notifier).state = session.id;
     }
   }
@@ -139,7 +139,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       if (currentId == session.id) {
         ref.read(currentSessionIdProvider.notifier).state = null;
       }
-      await ref.read(sessionListProvider.notifier).deleteSession(session.id);
+      await ref.read(sessionListProvider.notifier).delete(session.id);
     }
   }
 
@@ -175,7 +175,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
 
     if (newName != null && newName.isNotEmpty && newName != session.name) {
-      await ref.read(sessionListProvider.notifier).renameSession(session.id, newName);
+      await ref.read(sessionListProvider.notifier).rename(session.id, newName);
     }
   }
 
