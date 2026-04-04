@@ -888,6 +888,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add rules to approve shell commands before execution'**
   String get noExecRulesHint;
+
+  /// No description provided for @configSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration saved'**
+  String get configSaved;
+
+  /// No description provided for @configSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save configuration'**
+  String get configSaveError;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @noConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'No configuration'**
+  String get noConfig;
+
+  /// No description provided for @noConfigHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Configuration is empty'**
+  String get noConfigHint;
+
+  /// No description provided for @debugManualRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual RPC Request'**
+  String get debugManualRequest;
+
+  /// No description provided for @methodName.
+  ///
+  /// In en, this message translates to:
+  /// **'Method Name'**
+  String get methodName;
+
+  /// No description provided for @paramsJson.
+  ///
+  /// In en, this message translates to:
+  /// **'Parameters (JSON)'**
+  String get paramsJson;
+
+  /// No description provided for @sendRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Send Request'**
+  String get sendRequest;
+
+  /// No description provided for @response.
+  ///
+  /// In en, this message translates to:
+  /// **'Response'**
+  String get response;
+
+  /// No description provided for @updateStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Update started'**
+  String get updateStarted;
+
+  /// No description provided for @updateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Update failed'**
+  String get updateFailed;
+
+  /// No description provided for @updateAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Update available'**
+  String get updateAvailable;
+
+  /// No description provided for @upToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Up to date'**
+  String get upToDate;
+
+  /// No description provided for @currentVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Current version'**
+  String get currentVersion;
+
+  /// No description provided for @latestVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest version'**
+  String get latestVersion;
+
+  /// No description provided for @installUpdate.
+  ///
+  /// In en, this message translates to:
+  /// **'Install Update'**
+  String get installUpdate;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

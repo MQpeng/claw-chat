@@ -13,6 +13,7 @@ import 'cron_jobs_page.dart';
 import 'exec_approvals_page.dart';
 import 'config_page.dart';
 import 'debug_page.dart';
+import 'update_page.dart';
 import 'settings_page.dart';
 import 'pairing_page.dart';
 import 'client_logs_page.dart';
@@ -538,9 +539,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       case HomeMenuItem.debug:
         return const DebugPage();
       case HomeMenuItem.update:
-        return const Center(
-          child: Text('Update coming soon...'),
-        );
+        return const UpdatePage();
       case HomeMenuItem.settings:
         return const SettingsPage();
     }

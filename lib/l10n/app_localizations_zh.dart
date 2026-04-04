@@ -403,4 +403,55 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get noExecRulesHint => '添加规则以在执行前批准 shell 命令';
+
+  @override
+  String get configSaved => '配置已保存';
+
+  @override
+  String get configSaveError => '保存配置失败';
+
+  @override
+  String get edit => '编辑';
+
+  @override
+  String get noConfig => '无配置';
+
+  @override
+  String get noConfigHint => '配置为空';
+
+  @override
+  String get debugManualRequest => '手动 RPC 请求';
+
+  @override
+  String get methodName => '方法名称';
+
+  @override
+  String get paramsJson => '参数 (JSON)';
+
+  @override
+  String get sendRequest => '发送请求';
+
+  @override
+  String get response => '响应';
+
+  @override
+  String get updateStarted => '更新已开始';
+
+  @override
+  String get updateFailed => '更新失败';
+
+  @override
+  String get updateAvailable => '有可用更新';
+
+  @override
+  String get upToDate => '已是最新';
+
+  @override
+  String get currentVersion => '当前版本';
+
+  @override
+  String get latestVersion => '最新版本';
+
+  @override
+  String get installUpdate => '安装更新';
 }

@@ -403,4 +403,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noExecRulesHint => 'Add rules to approve shell commands before execution';
+
+  @override
+  String get configSaved => 'Configuration saved';
+
+  @override
+  String get configSaveError => 'Failed to save configuration';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get noConfig => 'No configuration';
+
+  @override
+  String get noConfigHint => 'Configuration is empty';
+
+  @override
+  String get debugManualRequest => 'Manual RPC Request';
+
+  @override
+  String get methodName => 'Method Name';
+
+  @override
+  String get paramsJson => 'Parameters (JSON)';
+
+  @override
+  String get sendRequest => 'Send Request';
+
+  @override
+  String get response => 'Response';
+
+  @override
+  String get updateStarted => 'Update started';
+
+  @override
+  String get updateFailed => 'Update failed';
+
+  @override
+  String get updateAvailable => 'Update available';
+
+  @override
+  String get upToDate => 'Up to date';
+
+  @override
+  String get currentVersion => 'Current version';
+
+  @override
+  String get latestVersion => 'Latest version';
+
+  @override
+  String get installUpdate => 'Install Update';
 }
