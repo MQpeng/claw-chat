@@ -300,7 +300,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 final message = messages[index];
                 return ChatBubble(
                   message: message,
-                  isUser: message.role == MessageRole.user,
                 );
               },
             ),
