@@ -45,7 +45,7 @@ import 'app_localizations_zh.dart';
 /// ## iOS Applications
 ///
 /// iOS applications define key application metadata, including supported
-/// locales, in an Info.plist file that is built into the application bundle.
+/// locales: an Info.plist file that is built into the application bundle.
 /// To configure the locales supported by your app, you’ll need to edit this
 /// file.
 ///
@@ -58,9 +58,11 @@ import 'app_localizations_zh.dart';
 ///
 /// Select and expand the newly-created Localizations item then, for each
 /// locale your application supports, add a new item and select the locale
-/// you wish to add from the pop-up menu in the Value field. This list should
-/// be consistent with the languages listed in the AppLocalizations.supportedLocales
-/// property.
+/// you wish to add from the pop-up menu in the value field. This list
+/// should match the list of supported locales on this method.
+///
+/// See https://developer.apple.com/documentation/Xcode/adding-支持语言-to-your-xcode-project
+/// for more information.
 abstract class AppLocalizations {
   AppLocalizations(String locale) : localeName = intl.Intl.canonicalizedLocale(locale.toString());
 
@@ -81,7 +83,7 @@ abstract class AppLocalizations {
   ///
   /// Additional delegates can be added by appending to this list in
   /// MaterialApp. This list does not have to be used at all if a custom list
-  /// of delegates is preferred or required.
+  /// is preferred.
   static const List<LocalizationsDelegate<dynamic>> localizationsDelegates = <LocalizationsDelegate<dynamic>>[
     delegate,
     GlobalMaterialLocalizations.delegate,
@@ -467,6 +469,30 @@ abstract class AppLocalizations {
   /// **'Chat'**
   String get chat;
 
+  /// No description provided for @skills.
+  ///
+  /// In en, this message translates to:
+  /// **'Skills'**
+  String get skills;
+
+  /// No description provided for @refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refresh;
+
+  /// No description provided for @noData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data'**
+  String get noData;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
   /// No description provided for @voice.
   ///
   /// In en, this message translates to:
@@ -580,7 +606,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select Model'**
   String get selectModel;
-
+}
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
