@@ -9,13 +9,19 @@ final sessionListProvider = NotifierProvider<SessionListNotifier, List<ChatSessi
 
 class SessionListNotifier extends Notifier<List<ChatSession>> {
   late final SessionRepository _repository;
+  bool _initialized = false;
   bool _loading = false;
 
   @override
   List<ChatSession> build() {
     final storage = HiveStorage();
     _repository = SessionRepository(storage);
-    _loadFromRemote();
+    // Initialize Hive storage async then load from remote
+    storage.init().then((_) {
+      _initialized = true;
+      _loadFromRemote();
+      refresh();
+    });
     return _repository.getActiveSessions();
   }
 
@@ -24,6 +30,8 @@ class SessionListNotifier extends Notifier<List<ChatSession>> {
   }
 
   Future<void> _loadFromRemote() async {
+    if (!_initialized) return;
+
     final connection = ref.read(connectionProvider);
     if (!connection.isConnected) {
       refresh();
@@ -85,18 +93,20 @@ class SessionListNotifier extends Notifier<List<ChatSession>> {
       // If remote fails, still use cached local sessions
     } finally {
       _loading = false;
+      _initialized = true;
       // Always refresh state after attempting remote load
       refresh();
     }
   }
 
   Future<void> refreshFromRemote() async {
+    if (!_initialized) return;
     await _loadFromRemote();
   }
 
   Future<ChatSession> createSession(String name) async {
-    final connection = ref.read(connectionProvider);
     String? sessionId;
+    final connection = ref.read(connectionProvider);
     if (connection.isConnected) {
       try {
         final client = ref.read(connectionProvider.notifier).client;
