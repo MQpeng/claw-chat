@@ -367,4 +367,40 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get failedToCreateSession => '创建会话失败';
+
+  @override
+  String get noChannelsConfigured => '暂无配置频道';
+
+  @override
+  String get addChannelHint => '点击 + 添加新频道';
+
+  @override
+  String get noConnectedNodes => '暂无已连接节点';
+
+  @override
+  String get noConnectedNodesHint => '配对后节点会自动连接';
+
+  @override
+  String get noCronJobs => '暂无计划任务';
+
+  @override
+  String get noCronJobsHint => '点击 + 创建新计划任务';
+
+  @override
+  String get schedule => '计划';
+
+  @override
+  String get nextRun => '下次运行';
+
+  @override
+  String get lastRun => '上次运行';
+
+  @override
+  String get addRule => '添加规则';
+
+  @override
+  String get noExecRules => '无审批规则';
+
+  @override
+  String get noExecRulesHint => '添加规则以在执行前批准 shell 命令';
 }

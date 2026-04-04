@@ -367,4 +367,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get failedToCreateSession => 'Failed to create session';
+
+  @override
+  String get noChannelsConfigured => 'No channels configured';
+
+  @override
+  String get addChannelHint => 'Tap + to add a new channel';
+
+  @override
+  String get noConnectedNodes => 'No connected nodes';
+
+  @override
+  String get noConnectedNodesHint => 'Nodes connect automatically when pairing';
+
+  @override
+  String get noCronJobs => 'No scheduled jobs';
+
+  @override
+  String get noCronJobsHint => 'Tap + to create a new cron job';
+
+  @override
+  String get schedule => 'Schedule';
+
+  @override
+  String get nextRun => 'Next run';
+
+  @override
+  String get lastRun => 'Last run';
+
+  @override
+  String get addRule => 'Add Rule';
+
+  @override
+  String get noExecRules => 'No approval rules';
+
+  @override
+  String get noExecRulesHint => 'Add rules to approve shell commands before execution';
 }

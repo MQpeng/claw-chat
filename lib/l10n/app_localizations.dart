@@ -816,6 +816,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to create session'**
   String get failedToCreateSession;
+
+  /// No description provided for @noChannelsConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'No channels configured'**
+  String get noChannelsConfigured;
+
+  /// No description provided for @addChannelHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + to add a new channel'**
+  String get addChannelHint;
+
+  /// No description provided for @noConnectedNodes.
+  ///
+  /// In en, this message translates to:
+  /// **'No connected nodes'**
+  String get noConnectedNodes;
+
+  /// No description provided for @noConnectedNodesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Nodes connect automatically when pairing'**
+  String get noConnectedNodesHint;
+
+  /// No description provided for @noCronJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'No scheduled jobs'**
+  String get noCronJobs;
+
+  /// No description provided for @noCronJobsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + to create a new cron job'**
+  String get noCronJobsHint;
+
+  /// No description provided for @schedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Schedule'**
+  String get schedule;
+
+  /// No description provided for @nextRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Next run'**
+  String get nextRun;
+
+  /// No description provided for @lastRun.
+  ///
+  /// In en, this message translates to:
+  /// **'Last run'**
+  String get lastRun;
+
+  /// No description provided for @addRule.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Rule'**
+  String get addRule;
+
+  /// No description provided for @noExecRules.
+  ///
+  /// In en, this message translates to:
+  /// **'No approval rules'**
+  String get noExecRules;
+
+  /// No description provided for @noExecRulesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Add rules to approve shell commands before execution'**
+  String get noExecRulesHint;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
