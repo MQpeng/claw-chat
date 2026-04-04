@@ -583,12 +583,6 @@ abstract class AppLocalizations {
   /// **'Select Model'**
   String get selectModel;
 
-  /// No description provided for @themeMode.
-  ///
-  /// In en, this message translates to:
-  /// **'Theme Mode'**
-  String get themeMode;
-
   /// No description provided for @themeSystem.
   ///
   /// In en, this message translates to:

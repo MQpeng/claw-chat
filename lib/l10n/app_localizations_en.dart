@@ -252,9 +252,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reconnect => 'Reconnect';
 
   @override
-  String get themeMode => 'Theme Mode';
-
-  @override
   String get themeSystem => 'Follow system';
 
   @override

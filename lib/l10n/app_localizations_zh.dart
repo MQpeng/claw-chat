@@ -252,9 +252,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get reconnect => '重连';
 
   @override
-  String get themeMode => '主题模式';
-
-  @override
   String get themeSystem => '跟随系统';
 
   @override

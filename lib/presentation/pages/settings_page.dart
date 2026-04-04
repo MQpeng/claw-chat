@@ -7,7 +7,7 @@ import '../../data/datasource/local/hive_storage.dart';
 import '../providers/theme_provider.dart';
 import '../providers/connection_provider.dart';
 import '../providers/session_provider.dart';
-import '../../../core/providers/model_provider.dart';
+import '../providers/theme_provider.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
