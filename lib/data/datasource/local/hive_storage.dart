@@ -13,6 +13,13 @@ class HiveStorage {
 
   Future<void> init() async {
     await Hive.initFlutter();
+    // Register Hive adapters
+    if (!Hive.isAdapterRegistered(ChatSessionAdapter().typeId)) {
+      Hive.registerAdapter(ChatSessionAdapter());
+    }
+    if (!Hive.isAdapterRegistered(ChatMessageAdapter().typeId)) {
+      Hive.registerAdapter(ChatMessageAdapter());
+    }
     await Hive.openBox<ChatSession>(_sessionsBox);
     await Hive.openBox<ChatMessage>(_messagesBox);
   }
