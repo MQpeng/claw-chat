@@ -41,6 +41,11 @@ class OpenClawClient {
   bool _authenticated = false;
   final Map<String, Completer<dynamic>> _pendingRequests = {};
 
+  // Stream listeners for chat events
+  Function(String chunk, String messageId, String state)? _onStreamEvent;
+  Function(String error)? _onStreamError;
+  VoidCallback? _onStreamDone;
+
   // Device identity - Ed25519 key pair stored locally
   SimpleKeyPair? _deviceKeyPair;
   String? _deviceId; // fingerprint = sha256(publicKey)
@@ -92,11 +97,14 @@ class OpenClawClient {
 
       _channel!.stream.listen(
         (data) {
-          _handleMessage(data as String, completer);
+          _handleMessage(data as String);
         },
         onError: (error) {
           _connected = false;
           _authenticated = false;
+          if (_onStreamError != null) {
+            _onStreamError!(error.toString());
+          }
           if (!completer.isCompleted) {
             completer.complete(ConnectionResult(false, error.toString()));
           }
@@ -104,6 +112,9 @@ class OpenClawClient {
         onDone: () {
           _connected = false;
           _authenticated = false;
+          if (_onStreamDone != null) {
+            _onStreamDone!();
+          }
           if (!completer.isCompleted) {
             completer.complete(ConnectionResult(false, 'Connection closed by server'));
           }
@@ -222,10 +233,31 @@ class OpenClawClient {
     return base64.encode(signature.bytes);
   }
 
-  void _handleMessage(
-    String raw,
-    Completer<ConnectionResult> authCompleter,
-  ) async {
+  void _handleMessage(String raw) async {
+    final parsed = json.decode(raw);
+    final frame = parsed as Map<String, dynamic>;
+
+    // Check if this is a chat stream event
+    if (frame['type'] == 'event' && _onStreamEvent != null) {
+      final eventName = frame['event'] as String?;
+      if (eventName == 'chat.stream') {
+        final payload = frame['payload'] as Map<String, dynamic>;
+        final id = payload['id'] as String;
+        final state = payload['state'] as String;
+        if (state == 'delta') {
+          final delta = payload['message'] as String;
+          _onStreamEvent!(delta, id, state);
+        } else {
+          _onStreamEvent!('', id, state);
+        }
+        return;
+      }
+    }
+
+    Completer<ConnectionResult>? authCompleter;
+    if (frame['type'] == 'event') {
+      final event = frame['event'] as String?;
+      if (event == 'connect.challenge') {
     final parsed = json.decode(raw);
     final frame = parsed as Map<String, dynamic>;
 
@@ -284,6 +316,59 @@ class OpenClawClient {
         return;
       }
       return;
+          final payload = frame['payload'] as Map<String, dynamic>;
+          final nonce = payload['nonce'] as String;
+          final timestamp = DateTime.now().millisecondsSinceEpoch;
+          final signature = await _signChallenge(nonce, timestamp);
+
+          // Get public key bytes
+          final publicKey = await _deviceKeyPair!.extractPublicKey();
+
+          // Build connect request according to OpenClaw protocol
+          // This is Control UI (mobile app), so role: operator, client.mode: ui
+          final request = {
+            'type': 'req',
+            'id': 'connect-auth',
+            'method': 'connect',
+            'params': {
+              'minProtocol': 3,
+              'maxProtocol': 3,
+              'client': {
+                'id': 'openclaw-control-ui',
+                'version': '1.0.0',
+                'platform': 'flutter-mobile',
+                'mode': 'ui',
+              },
+              'role': 'operator',
+              'scopes': [
+                'operator.admin',
+                'operator.read',
+                'operator.write',
+                'operator.approvals',
+                'operator.pairing',
+              ],
+              'caps': ['tool-events', 'camera'],
+              'auth': {
+                'token': _config!.token,
+              },
+              'locale': Platform.localeName,
+              'userAgent': 'claw-chat/1.0.0',
+              'device': {
+                'id': _deviceId,
+                'publicKey': base64UrlEncode(publicKey.bytes),
+                'signature': signature,
+                'signedAt': timestamp,
+                'nonce': nonce,
+              },
+            },
+          };
+
+          debugPrint('📤 Sent connect request: deviceId = $_deviceId');
+          _channel!.sink.add(json.encode(request));
+          return;
+        }
+        return;
+      }
     }
 
     if (frame['type'] == 'res') {
@@ -294,8 +379,8 @@ class OpenClawClient {
       if (id == 'connect-auth') {
         if (ok) {
           _authenticated = true;
-          if (!authCompleter.isCompleted) {
-            authCompleter.complete(ConnectionResult(true, null));
+          if (!(authCompleter?.isCompleted ?? true)) {
+            authCompleter?.complete(ConnectionResult(true, null));
           }
         } else {
           _authenticated = false;
@@ -304,8 +389,8 @@ class OpenClawClient {
               ? frame['error']['message'] ?? 'Authentication failed'
               : 'Authentication failed';
           debugPrint('❌ Authentication failed: $errorMsg');
-          if (!authCompleter.isCompleted) {
-            authCompleter.complete(ConnectionResult(false, errorMsg));
+          if (!(authCompleter?.isCompleted ?? true)) {
+            authCompleter?.complete(ConnectionResult(false, errorMsg));
           }
         }
       }
@@ -329,6 +414,9 @@ class OpenClawClient {
     _authenticated = false;
     _channel = null;
     _pendingRequests.clear();
+    _onStreamEvent = null;
+    _onStreamError = null;
+    _onStreamDone = null;
   }
 
   void sendMessage(
@@ -367,38 +455,9 @@ class OpenClawClient {
     required Function(String error) onStreamError,
     required VoidCallback onStreamDone,
   }) {
-    _channel!.stream.listen(
-      (data) {
-        final event = json.decode(data as String);
-        if (event['type'] != 'event') {
-          // Handle request responses in _handleMessage
-          return;
-        }
-
-        final eventName = event['event'] as String;
-        if (eventName == 'chat.stream') {
-          final payload = event['payload'] as Map<String, dynamic>;
-          final id = payload['id'] as String;
-          final state = payload['state'] as String;
-          if (state == 'delta') {
-            final delta = payload['message'] as String;
-            onStreamEvent(delta, id, state);
-          } else {
-            onStreamEvent('', id, state);
-          }
-        }
-      },
-      onError: (error) {
-        onStreamError(error.toString());
-        _connected = false;
-        _authenticated = false;
-      },
-      onDone: () {
-        _connected = false;
-        _authenticated = false;
-        onStreamDone();
-      },
-    );
+    _onStreamEvent = onStreamEvent;
+    _onStreamError = onStreamError;
+    _onStreamDone = onStreamDone;
   }
 
   Future<String?> uploadFile(String filePath, String fileName) async {
