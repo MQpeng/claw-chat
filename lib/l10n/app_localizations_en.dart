@@ -462,6 +462,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sessions => 'Sessions';
 
   @override
+  String get control => 'Control';
+
+  @override
   String get channelAdded => 'Channel added';
 
   @override

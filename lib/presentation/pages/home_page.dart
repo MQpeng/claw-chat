@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/app_localizations.dart';
-import '../../data/datasource/remote/openclaw_client.dart';
 import '../providers/session_provider.dart';
 import '../providers/connection_provider.dart';
 import '../../domain/entities/chat_session.dart';
@@ -21,41 +20,6 @@ import 'skills_page.dart';
 import 'chat_page.dart';
 import '../widgets/session_list_item.dart';
 
-enum HomeMenuItem {
-  // Core
-  overview(icon: Icons.dashboard_outlined, label: 'Overview', group: MenuGroup.core),
-  chat(icon: Icons.chat_bubble_outline, label: 'Chat', group: MenuGroup.core),
-  sessions(icon: Icons.forum_outlined, label: 'Sessions', group: MenuGroup.core),
-  // Management
-  channels(icon: Icons.message_outlined, label: 'Channels', group: MenuGroup.management),
-  cronJobs(icon: Icons.schedule_outlined, label: 'Cron Jobs', group: MenuGroup.management),
-  skills(icon: Icons.widgets_outlined, label: 'Skills', group: MenuGroup.management),
-  nodes(icon: Icons.devices_outlined, label: 'Nodes', group: MenuGroup.management),
-  exec(icon: Icons.terminal_outlined, label: 'Exec Approvals', group: MenuGroup.management),
-  config(icon: Icons.settings_outlined, label: 'Gateway Config', group: MenuGroup.management),
-  // Development
-  logs(icon: Icons.bug_report_outlined, label: 'Client Logs', group: MenuGroup.development),
-  debug(icon: Icons.bug_report_outlined, label: 'Debug', group: MenuGroup.development),
-  update(icon: Icons.update_outlined, label: 'Update', group: MenuGroup.development),
-  // Settings
-  settings(icon: Icons.tune_outlined, label: 'Settings', group: MenuGroup.settings);
-
-  const HomeMenuItem({required this.icon, required this.label, required this.group});
-  final IconData icon;
-  final String label;
-  final MenuGroup group;
-}
-
-enum MenuGroup {
-  core('Core'),
-  management('Management'),
-  development('Development'),
-  settings('Settings');
-
-  const MenuGroup(this.label);
-  final String label;
-}
-
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
@@ -64,9 +28,9 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
+  int _currentIndex = 0;
   bool _didAutoCreate = false;
   bool _didInit = false;
-  HomeMenuItem _selectedMenuItem = HomeMenuItem.overview;
 
   @override
   void initState() {
@@ -142,9 +106,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         final session = await ref.read(sessionListProvider.notifier).create(name);
         if (mounted) {
           ref.read(currentSessionIdProvider.notifier).state = session.id;
-          // Switch to chat page after creating
+          // If not on sessions tab, switch to it
           setState(() {
-            _selectedMenuItem = HomeMenuItem.chat;
+            _currentIndex = 0;
           });
         }
       } catch (e) {
@@ -243,9 +207,6 @@ class _HomePageState extends ConsumerState<HomePage> {
           final session = await ref.read(sessionListProvider.notifier).create('default');
           if (mounted) {
             ref.read(currentSessionIdProvider.notifier).state = session.id;
-            setState(() {
-              _selectedMenuItem = HomeMenuItem.chat;
-            });
           }
         } catch (e) {
           if (mounted) {
@@ -262,82 +223,16 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
 
     // Get connection status visual
-    final status = connection.status;
-    final (statusColor, statusText) = _getStatusInfo(context, status);
-
-    // Mobile layout - show session list or chat page
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isTablet = screenWidth > 600;
+    final (statusColor, statusText) = _getStatusInfo(context, connection.status);
 
     return Scaffold(
-      drawer: Drawer(
-        child: Column(
-          children: [
-            // Drawer header with app info
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  const Text(
-                    'OpenClaw',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.openClawMobileClient,
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.8),
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Menu items grouped by category
-            ..._buildGroupedMenuItems(context, l10n),
-            const Spacer(),
-            // Status info
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              child: Row(
-                children: [
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: statusColor,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    statusText,
-                    style: TextStyle(
-                      color: statusColor,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
       appBar: AppBar(
         centerTitle: false,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              _getMenuItemLabel(_selectedMenuItem, l10n),
+              _getCurrentTitle(_currentIndex, l10n),
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
@@ -384,14 +279,8 @@ class _HomePageState extends ConsumerState<HomePage> {
             ),
           ],
         ),
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
         actions: [
-          if (_selectedMenuItem == HomeMenuItem.chat) ...[
+          if (_currentIndex == 0 && currentSessionId == null) ...[
             IconButton(
               icon: const Icon(Icons.search),
               onPressed: () async {
@@ -414,207 +303,81 @@ class _HomePageState extends ConsumerState<HomePage> {
               tooltip: l10n.createNew,
             ),
           ],
-          if (_selectedMenuItem == HomeMenuItem.settings)
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SettingsPage()),
-                );
-              },
-              tooltip: l10n.settings,
-            ),
         ],
       ),
-      body: _buildBody(
-        context,
-        _selectedMenuItem,
-        sessions,
-        currentSessionId,
-        isTablet,
+      body: _buildBody(context, _currentIndex, sessions, currentSessionId),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.chat_bubble_outline),
+            label: l10n.sessions,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.dashboard_outlined),
+            label: l10n.control,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.devices_outlined),
+            label: l10n.nodes,
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.settings_outlined),
+            label: l10n.settings,
+          ),
+        ],
       ),
+      floatingActionButton: _currentIndex == 0 && currentSessionId == null
+          ? FloatingActionButton(
+              onPressed: _createNewSession,
+              child: const Icon(Icons.add),
+              tooltip: l10n.createNew,
+            )
+          : null,
     );
   }
 
-  (Color, String) _getStatusInfo(BuildContext context, ConnectionStatus status) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context)!;
-    switch (status) {
-      case ConnectionStatus.loading:
-        return (Colors.blue, l10n.loading);
-      case ConnectionStatus.disconnected:
-        return (Colors.grey[600]!, l10n.disconnected);
-      case ConnectionStatus.connecting:
-        return (Colors.orange, l10n.connecting);
-      case ConnectionStatus.connected:
-        return (Colors.green, l10n.connected);
-      case ConnectionStatus.error:
-        return (Colors.red, l10n.connectionError);
-    }
-  }
-
-  String _getMenuItemLabel(HomeMenuItem item, AppLocalizations l10n) {
-    switch (item) {
-      case HomeMenuItem.overview:
-        return l10n.overview;
-      case HomeMenuItem.chat:
-        return l10n.chat;
-      case HomeMenuItem.channels:
-        return l10n.channels;
-      case HomeMenuItem.sessions:
+  String _getCurrentTitle(int index, AppLocalizations l10n) {
+    switch (index) {
+      case 0:
         return l10n.sessions;
-      case HomeMenuItem.cronJobs:
-        return l10n.cronJobs;
-      case HomeMenuItem.skills:
-        return l10n.skills;
-      case HomeMenuItem.nodes:
+      case 1:
+        return l10n.control;
+      case 2:
         return l10n.nodes;
-      case HomeMenuItem.exec:
-        return l10n.exec;
-      case HomeMenuItem.config:
-        return l10n.config;
-      case HomeMenuItem.logs:
-        return l10n.logs;
-      case HomeMenuItem.debug:
-        return l10n.debug;
-      case HomeMenuItem.update:
-        return l10n.update;
-      case HomeMenuItem.settings:
+      case 3:
         return l10n.settings;
+      default:
+        return 'Claw Chat';
     }
-  }
-
-  List<Widget> _buildGroupedMenuItems(BuildContext context, AppLocalizations l10n) {
-    final List<Widget> items = [];
-    
-    // Group by MenuGroup
-    final grouped = <MenuGroup, List<HomeMenuItem>>{};
-    for (final item in HomeMenuItem.values) {
-      grouped.putIfAbsent(item.group, () => []).add(item);
-    }
-    
-    for (final group in grouped.entries) {
-      // Add group header
-      items.add(Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-        child: Text(
-          group.key.label,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: Theme.of(context).colorScheme.primary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ));
-      
-      // Add menu items in this group
-      for (final item in group.value) {
-        final isSelected = _selectedMenuItem == item;
-        items.add(ListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 0,
-          ),
-          leading: Icon(
-            item.icon,
-            color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-          ),
-          title: Text(
-            _getMenuItemLabel(item, l10n),
-            style: TextStyle(
-              color: isSelected
-                  ? Theme.of(context).colorScheme.primary
-                  : null,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-          selected: isSelected,
-          onTap: () {
-            setState(() {
-              _selectedMenuItem = item;
-            });
-            Navigator.pop(context);
-          },
-        ));
-      }
-    }
-    
-    return items;
   }
 
   Widget _buildBody(
     BuildContext context,
-    HomeMenuItem selected,
+    int currentTab,
     List<ChatSession> sessions,
     String? currentSessionId,
-    bool isTablet,
   ) {
-    switch (selected) {
-      case HomeMenuItem.overview:
-        return const OverviewPage();
-      case HomeMenuItem.chat:
-      case HomeMenuItem.sessions:
+    switch (currentTab) {
+      case 0: // Sessions
         if (currentSessionId == null) {
           return _buildSessionList(context, sessions, currentSessionId);
         }
-        return isTablet
-            ? Row(
-                children: [
-                  SizedBox(
-                    width: 300,
-                    child: _buildSessionList(context, sessions, currentSessionId),
-                  ),
-                  const Expanded(child: ChatPage()),
-                ],
-              )
-            : const ChatPage();
-      case HomeMenuItem.channels:
-        return const ChannelsPage();
-      case HomeMenuItem.cronJobs:
-        return const CronJobsPage();
-      case HomeMenuItem.skills:
-        return const SkillsPage();
-      case HomeMenuItem.nodes:
+        return const ChatPage();
+      case 1: // Control - all management pages
+        return _buildControlList(context);
+      case 2: // Nodes
         return const NodesPage();
-      case HomeMenuItem.exec:
-        return const ExecApprovalsPage();
-      case HomeMenuItem.config:
-        return const ConfigPage();
-      case HomeMenuItem.logs:
-        return const ClientLogsPage();
-      case HomeMenuItem.debug:
-        return const DebugPage();
-      case HomeMenuItem.update:
-        return const UpdatePage();
-      case HomeMenuItem.settings:
+      case 3: // Settings
         return const SettingsPage();
+      default:
+        return _buildSessionList(context, sessions, currentSessionId);
     }
-  }
-
-  void _showErrorDetails(BuildContext context, String error) {
-    final l10n = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title:  Text(l10n.connectionError),
-        content: SelectableText(error),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child:  Text(l10n.ok),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              ref.read(connectionProvider.notifier).connect();
-            },
-            child:  Text(l10n.reconnect),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildSessionList(
@@ -660,11 +423,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               );
               ref.read(connectionProvider.notifier).connect();
             }
-            // Close drawer on mobile
-            if (!MediaQuery.of(context).size.width.isFinite ||
-                MediaQuery.of(context).size.width < 600) {
-              Scaffold.of(context).closeDrawer();
-            }
+            // Close drawer on mobile already handled by bottom nav
           },
           onDelete: () => _deleteSession(session),
           onRename: () => _renameSession(session),
@@ -674,6 +433,144 @@ class _HomePageState extends ConsumerState<HomePage> {
               ref.read(sessionListProvider.notifier).toggleArchive(session.id),
         );
       },
+    );
+  }
+
+  Widget _buildControlList(BuildContext context) {
+    return ListView(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.message_outlined),
+          title: Text(AppLocalizations.of(context)!.channels),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ChannelsPage()),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.schedule_outlined),
+          title: Text(AppLocalizations.of(context)!.cronJobs),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CronJobsPage()),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.widgets_outlined),
+          title: Text(AppLocalizations.of(context)!.skills),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SkillsPage()),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.terminal_outlined),
+          title: Text(AppLocalizations.of(context)!.exec),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ExecApprovalsPage()),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.settings_outlined),
+          title: Text(AppLocalizations.of(context)!.config),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ConfigPage()),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.bug_report_outlined),
+          title: Text(AppLocalizations.of(context)!.logs),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const ClientLogsPage()),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.bug_report_outlined),
+          title: Text(AppLocalizations.of(context)!.debug),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const DebugPage()),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.update_outlined),
+          title: Text(AppLocalizations.of(context)!.update),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const UpdatePage()),
+            );
+          },
+        ),
+        ListTile(
+          leading: const Icon(Icons.dashboard_outlined),
+          title: Text(AppLocalizations.of(context)!.overview),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const OverviewPage()),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  (Color, String) _getStatusInfo(BuildContext context, ConnectionStatus status) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    switch (status) {
+      case ConnectionStatus.loading:
+        return (Colors.blue, l10n.loading);
+      case ConnectionStatus.disconnected:
+        return (theme.colorScheme.onSurface.withOpacity(0.6), l10n.disconnected);
+      case ConnectionStatus.connecting:
+        return (Colors.orange, l10n.connecting);
+      case ConnectionStatus.connected:
+        return (Colors.green, l10n.connected);
+      case ConnectionStatus.error:
+        return (Colors.red, l10n.connectionError);
+    }
+  }
+
+  void _showErrorDetails(BuildContext context, String error) {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title:  Text(l10n.connectionError),
+        content: SelectableText(error),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child:  Text(l10n.ok),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              ref.read(connectionProvider.notifier).connect();
+            },
+            child:  Text(l10n.reconnect),
+          ),
+        ],
+      ),
     );
   }
 }

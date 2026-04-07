@@ -1003,6 +1003,12 @@ abstract class AppLocalizations {
   /// **'Sessions'**
   String get sessions;
 
+  /// No description provided for @control.
+  ///
+  /// In en, this message translates to:
+  /// **'Control'**
+  String get control;
+
   /// No description provided for @channelAdded.
   ///
   /// In en, this message translates to:

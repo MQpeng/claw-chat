@@ -462,6 +462,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sessions => '会话';
 
   @override
+  String get control => '控制';
+
+  @override
   String get channelAdded => '频道已添加';
 
   @override
