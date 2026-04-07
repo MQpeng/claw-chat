@@ -1,13 +1,23 @@
 import 'package:hive/hive.dart';
 import 'file_item_type.dart';
 
+part 'file_item.g.dart';
+
+@HiveType(typeId: 4)
 class FileItem extends HiveObject {
+  @HiveField(0)
   final String id;
+  @HiveField(1)
   final String name;
+  @HiveField(2)
   final int size;
+  @HiveField(3)
   final String? remoteUrl;
+  @HiveField(4)
   final String? localPath;
+  @HiveField(5)
   final String mimeType;
+  @HiveField(6)
   final FileItemType type;
 
   FileItem({

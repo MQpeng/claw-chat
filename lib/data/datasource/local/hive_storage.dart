@@ -2,6 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../../domain/entities/chat_session.dart';
 import '../../../domain/entities/chat_message.dart';
+import '../../../domain/entities/message_role.dart';
+import '../../../domain/entities/message_status.dart';
+import '../../../domain/entities/file_item.dart';
+import '../../../domain/entities/file_item_type.dart';
 
 // Exactly as OpenClaw Control UI requires:
 // - Two boxes: sessions and messages
@@ -14,12 +18,24 @@ class HiveStorage {
 
   Future<void> init() async {
     await Hive.initFlutter();
-    // Register Hive adapters
+    // Register Hive adapters - ALL nested types need to be registered
     if (!Hive.isAdapterRegistered(ChatSessionAdapter().typeId)) {
       Hive.registerAdapter(ChatSessionAdapter());
     }
     if (!Hive.isAdapterRegistered(ChatMessageAdapter().typeId)) {
       Hive.registerAdapter(ChatMessageAdapter());
+    }
+    if (!Hive.isAdapterRegistered(MessageRoleAdapter().typeId)) {
+      Hive.registerAdapter(MessageRoleAdapter());
+    }
+    if (!Hive.isAdapterRegistered(MessageStatusAdapter().typeId)) {
+      Hive.registerAdapter(MessageStatusAdapter());
+    }
+    if (!Hive.isAdapterRegistered(FileItemAdapter().typeId)) {
+      Hive.registerAdapter(FileItemAdapter());
+    }
+    if (!Hive.isAdapterRegistered(FileItemTypeAdapter().typeId)) {
+      Hive.registerAdapter(FileItemTypeAdapter());
     }
     
     // Try open boxes, delete and retry if corrupted
