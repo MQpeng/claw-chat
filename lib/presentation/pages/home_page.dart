@@ -22,22 +22,37 @@ import 'chat_page.dart';
 import '../widgets/session_list_item.dart';
 
 enum HomeMenuItem {
-  overview(icon: Icons.dashboard_outlined, label: 'Overview'),
-  chat(icon: Icons.chat_bubble_outline, label: 'Chat'),
-  channels(icon: Icons.message_outlined, label: 'Channels'),
-  sessions(icon: Icons.forum_outlined, label: 'Sessions'),
-  cronJobs(icon: Icons.schedule_outlined, label: 'Cron Jobs'),
-  skills(icon: Icons.widgets_outlined, label: 'Skills'),
-  nodes(icon: Icons.devices_outlined, label: 'Nodes'),
-  exec(icon: Icons.terminal_outlined, label: 'Exec'),
-  config(icon: Icons.settings_outlined, label: 'Config'),
-  logs(icon: Icons.bug_report_outlined, label: 'Logs'),
-  debug(icon: Icons.bug_report_outlined, label: 'Debug'),
-  update(icon: Icons.update_outlined, label: 'Update'),
-  settings(icon: Icons.tune_outlined, label: 'Settings');
+  // Core
+  overview(icon: Icons.dashboard_outlined, label: 'Overview', group: MenuGroup.core),
+  chat(icon: Icons.chat_bubble_outline, label: 'Chat', group: MenuGroup.core),
+  sessions(icon: Icons.forum_outlined, label: 'Sessions', group: MenuGroup.core),
+  // Management
+  channels(icon: Icons.message_outlined, label: 'Channels', group: MenuGroup.management),
+  cronJobs(icon: Icons.schedule_outlined, label: 'Cron Jobs', group: MenuGroup.management),
+  skills(icon: Icons.widgets_outlined, label: 'Skills', group: MenuGroup.management),
+  nodes(icon: Icons.devices_outlined, label: 'Nodes', group: MenuGroup.management),
+  exec(icon: Icons.terminal_outlined, label: 'Exec Approvals', group: MenuGroup.management),
+  config(icon: Icons.settings_outlined, label: 'Gateway Config', group: MenuGroup.management),
+  // Development
+  logs(icon: Icons.bug_report_outlined, label: 'Client Logs', group: MenuGroup.development),
+  debug(icon: Icons.bug_report_outlined, label: 'Debug', group: MenuGroup.development),
+  update(icon: Icons.update_outlined, label: 'Update', group: MenuGroup.development),
+  // Settings
+  settings(icon: Icons.tune_outlined, label: 'Settings', group: MenuGroup.settings);
 
-  const HomeMenuItem({required this.icon, required this.label});
+  const HomeMenuItem({required this.icon, required this.label, required this.group});
   final IconData icon;
+  final String label;
+  final MenuGroup group;
+}
+
+enum MenuGroup {
+  core('Core'),
+  management('Management'),
+  development('Development'),
+  settings('Settings');
+
+  const MenuGroup(this.label);
   final String label;
 }
 
@@ -286,34 +301,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                 ],
               ),
             ),
-            // Menu items
-            ...HomeMenuItem.values.map((item) {
-              final isSelected = _selectedMenuItem == item;
-              return ListTile(
-                leading: Icon(
-                  item.icon,
-                  color: isSelected
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                ),
-                title: Text(
-                  _getMenuItemLabel(item, l10n),
-                  style: TextStyle(
-                    color: isSelected
-                        ? Theme.of(context).colorScheme.primary
-                        : null,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-                selected: isSelected,
-                onTap: () {
-                  setState(() {
-                    _selectedMenuItem = item;
-                  });
-                  Navigator.pop(context);
-                },
-              );
-            }).toList(),
+            // Menu items grouped by category
+            ..._buildGroupedMenuItems(context, l10n),
             const Spacer(),
             // Status info
             Padding(
@@ -494,6 +483,65 @@ class _HomePageState extends ConsumerState<HomePage> {
       case HomeMenuItem.settings:
         return l10n.settings;
     }
+  }
+
+  List<Widget> _buildGroupedMenuItems(BuildContext context, AppLocalizations l10n) {
+    final List<Widget> items = [];
+    
+    // Group by MenuGroup
+    final grouped = <MenuGroup, List<HomeMenuItem>>{};
+    for (final item in HomeMenuItem.values) {
+      grouped.putIfAbsent(item.group, () => []).add(item);
+    }
+    
+    for (final group in grouped.entries) {
+      // Add group header
+      items.add(Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+        child: Text(
+          group.key.label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ));
+      
+      // Add menu items in this group
+      for (final item in group.value) {
+        final isSelected = _selectedMenuItem == item;
+        items.add(ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 0,
+          ),
+          leading: Icon(
+            item.icon,
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+          ),
+          title: Text(
+            _getMenuItemLabel(item, l10n),
+            style: TextStyle(
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : null,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          selected: isSelected,
+          onTap: () {
+            setState(() {
+              _selectedMenuItem = item;
+            });
+            Navigator.pop(context);
+          },
+        ));
+      }
+    }
+    
+    return items;
   }
 
   Widget _buildBody(
