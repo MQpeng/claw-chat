@@ -116,25 +116,33 @@ class ConnectionNotifier extends Notifier<ConnectionState> {
         // Exactly like Control UI: after connect, refresh sessions and auto-select
         final sessionNotifier = ref.read(sessionListProvider.notifier);
         sessionNotifier.refreshFromRemote().then((_) {
-          final sessions = ref.read(sessionListProvider);
-          final currentId = ref.read(currentSessionIdProvider);
+          try {
+            final sessions = ref.read(sessionListProvider);
+            final currentId = ref.read(currentSessionIdProvider);
 
-          if (sessions.isNotEmpty && currentId == null) {
-            // Sort: pinned first → updatedAt descending
-            sessions.sort((a, b) {
-              if (a.isPinned != b.isPinned) {
-                return b.isPinned ? 1 : -1;
-              }
-              return b.updatedAt.compareTo(a.updatedAt);
-            });
-            // Auto-select first
-            ref.read(currentSessionIdProvider.notifier).state = sessions.first.id;
-          } else if (sessions.isEmpty && currentId == null) {
-            // Auto-create default session like Control UI
-            sessionNotifier.create('default').then((session) {
-              ref.read(currentSessionIdProvider.notifier).state = session.id;
-            });
+            if (sessions.isNotEmpty && currentId == null) {
+              // Sort: pinned first → updatedAt descending
+              sessions.sort((a, b) {
+                if (a.isPinned != b.isPinned) {
+                  return b.isPinned ? 1 : -1;
+                }
+                return b.updatedAt.compareTo(a.updatedAt);
+              });
+              // Auto-select first
+              ref.read(currentSessionIdProvider.notifier).state = sessions.first.id;
+            } else if (sessions.isEmpty && currentId == null) {
+              // Auto-create default session like Control UI
+              sessionNotifier.create('default').then((session) {
+                ref.read(currentSessionIdProvider.notifier).state = session.id;
+              }).catchError((e) {
+                debugPrint('⚠️ Auto-create default session failed: $e');
+              });
+            }
+          } catch (e) {
+            debugPrint('⚠️ Auto-select session failed: $e');
           }
+        }).catchError((e) {
+          debugPrint('⚠️ Refresh sessions failed: $e');
         });
 
         return true;
