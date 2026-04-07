@@ -123,8 +123,8 @@ class OpenClawClient {
 
       // Wait for authentication to complete with timeout
       final result = await completer.future.timeout(
-        const Duration(seconds: 10),
-        onTimeout: () => ConnectionResult(false, 'Connection timeout after 10 seconds'),
+        const Duration(seconds: 30),
+        onTimeout: () => ConnectionResult(false, 'Connection timeout after 30 seconds'),
       );
       return result;
     } catch (e) {
