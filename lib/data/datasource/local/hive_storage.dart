@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../../../domain/entities/chat_session.dart';
 import '../../../domain/entities/chat_message.dart';
@@ -20,8 +21,20 @@ class HiveStorage {
     if (!Hive.isAdapterRegistered(ChatMessageAdapter().typeId)) {
       Hive.registerAdapter(ChatMessageAdapter());
     }
-    await Hive.openBox<ChatSession>(_sessionsBox);
-    await Hive.openBox<ChatMessage>(_messagesBox);
+    
+    // Try open boxes, delete and retry if corrupted
+    try {
+      await Hive.openBox<ChatSession>(_sessionsBox);
+      await Hive.openBox<ChatMessage>(_messagesBox);
+    } catch (e) {
+      debugPrint('⚠️ Failed to open Hive boxes: $e');
+      debugPrint('Deleting corrupted boxes and retrying...');
+      await Hive.deleteBoxFromDisk(_sessionsBox);
+      await Hive.deleteBoxFromDisk(_messagesBox);
+      await Future.delayed(const Duration(milliseconds: 500));
+      await Hive.openBox<ChatSession>(_sessionsBox);
+      await Hive.openBox<ChatMessage>(_messagesBox);
+    }
   }
 
   Box<ChatSession> get sessions => Hive.box<ChatSession>(_sessionsBox);

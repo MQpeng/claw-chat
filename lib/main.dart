@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme/app_theme.dart';
 import 'data/datasource/local/hive_storage.dart';
@@ -12,7 +14,25 @@ import 'l10n/app_localizations.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SharedPreferences.getInstance();
-  await HiveStorage().init();
+  
+  // Try initialize Hive, delete and retry if it fails
+  // This handles corrupted database from old versions
+  try {
+    await HiveStorage().init();
+  } catch (e) {
+    debugPrint('⚠️ Hive initialization failed: $e');
+    debugPrint('Deleting corrupted database and retrying...');
+    // Hive will recreate boxes on next open
+    await Hive.close();
+    await Future.delayed(const Duration(milliseconds: 500));
+    try {
+      await HiveStorage().init();
+    } catch (e2) {
+      debugPrint('⚠️ Second Hive init failed: $e2');
+      // Still failed, let app continue - it might work
+    }
+  }
+  
   runApp(const ProviderScope(child: ClawChatApp()));
 }
 
