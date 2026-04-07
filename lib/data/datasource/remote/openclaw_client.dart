@@ -89,9 +89,6 @@ class OpenClawClient {
       _connected = true;
       _authenticated = false;
 
-      // Load or generate device key pair (persisted to local storage)
-      await _loadOrGenerateDeviceKey();
-
       // Wait for connect challenge and complete authentication
       final completer = Completer<ConnectionResult>();
 
@@ -120,6 +117,11 @@ class OpenClawClient {
           }
         },
       );
+
+      // Load or generate device key pair (persisted to local storage)
+      // Do this after starting listener so we can receive challenge immediately
+      // Server sends challenge right after connection, don't block the receive
+      await _loadOrGenerateDeviceKey();
 
       // Wait for authentication to complete with timeout
       final result = await completer.future.timeout(
